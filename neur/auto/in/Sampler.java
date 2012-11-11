@@ -14,19 +14,19 @@ public class Sampler {
     
     public int DISCR_DATA_UPPER_THRESHOLD = 10;
 
-    public float[][][] extractSampleFromCSV(List<String[]> raw, int[] in, int[] out)
+    public float[][][] extractSample(List<String[]> raw, int[] in, int[] out)
     {
         float[][][] r = new float[raw.size()][][];
         String[] templ = raw.get(0);
-        // for each column, determine if its data is discrete numeric, or numeric, or alphabetic
-        boolean[] numeric = new boolean[templ.length];
-        boolean[] discrete = new boolean[templ.length];
+        // for each column, determine if its data is integral, or real, or alphabetic
+        boolean[] real = new boolean[templ.length];
+        boolean[] integral = new boolean[templ.length];
         boolean[] inContains = new boolean[templ.length];
         boolean[] outContains = new boolean[templ.length];
-        for (int i = 0; i < numeric.length; i++)
+        for (int i = 0; i < real.length; i++)
         {
-            numeric[i] = true;
-            discrete[i] = true;
+            real[i] = true;
+            integral[i] = true;
             inContains[i] = contains(in, i);
             outContains[i] = contains(out, i);
         }
@@ -37,44 +37,44 @@ public class Sampler {
             {
                 cols[j] = cols[j]
                         .replace(',', '.');
-                if (numeric[j])
+                if (real[j])
                 {
                     if (!cols[j].matches("(\\d*\\.\\d+|\\d+(\\.\\d*)?)"))    // not a decimal number
                     {
-                        discrete[j] = false;
-                        numeric[j] = false;
+                        integral[j] = false;
+                        real[j] = false;
                     }
                     else if (!cols[j].matches("\\d+") || Long.parseLong(cols[j]) > DISCR_DATA_UPPER_THRESHOLD)
                     {
-                        discrete[j] = false;
+                        integral[j] = false;
                     }
                 }
                 
             }
         }
         // extract each input column according to its datatype into a temporary array
-        Object[] tmpArrays = new Object[numeric.length];
+        Object[] tmpArrays = new Object[real.length];
         for (int i = 0; i < tmpArrays.length; i++)
         {
-            if (discrete[i])    { tmpArrays[i] = ints(col(raw, i)); }
-            else if (numeric[i]){ tmpArrays[i] = floats(col(raw, i)); } // 1
+            if (integral[i])    { tmpArrays[i] = ints(col(raw, i)); }
+            else if (real[i]){ tmpArrays[i] = floats(col(raw, i)); } // 1
             else                { tmpArrays[i] = col(raw, i); }
         }        
         
-        // separate each input column into classes, if it is discrete-numeric or discrete-other
-        Object[] classes = new Object[numeric.length];
+        // separate each input column into classes if it is discrete-numeric or discrete-other
+        Object[] classes = new Object[real.length];
         int totalIns = 0,
                 totalOuts = 0;
         for (int i = 0; i < tmpArrays.length; i++)
         {
             int n = 1; 
-            if (discrete[i])
+            if (integral[i])
             {
                 int[][] cc = classes((int[])tmpArrays[i]);
                 classes[i] = cc;
                 n = cc.length;
             }
-            else if (numeric[i]) { } // n = 1
+            else if (real[i]) { } // n = 1
             else
             {
                 TreeMap cc = classes((String[])tmpArrays[i]);
@@ -90,9 +90,9 @@ public class Sampler {
             r[k] = new float[][] { new float[totalIns], new float[totalOuts] };
             int iind = 0,
                     oind = 0;
-            for (int i = 0; i < numeric.length; i++)
+            for (int i = 0; i < real.length; i++)
             {
-                if (discrete[i])
+                if (integral[i])
                 {   // discrete numeric classes, convert each to n numeric input columns of {0,1}
                     int[] arr = (int[])tmpArrays[i];
                     int[][] cc = (int[][])classes[i];
@@ -106,7 +106,7 @@ public class Sampler {
                                     (cc[h][0] == arr[k] ? 1f: 0f);
                     }
                 }
-                else if (numeric[i])
+                else if (real[i])
                 {   // continuous numeric values, retain this column
                     float[] arr = (float[])tmpArrays[i];
                     if (inContains[i])

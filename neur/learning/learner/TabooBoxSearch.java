@@ -9,7 +9,7 @@ import neur.data.Trainres;
 import static neur.util.Arrf.flatten;
 
 /** 
- *   A stochastic learning algorithm for suggesting new MLP connection configurations within a given topology. 
+ *   A stochastic learning algorithm. Call on this iteratively to suggest new MLPs within a given topology. 
  * Uses a list of taboo boxes for tested solutions, maintaining a best-of generated solutions record 
  * in the public member @see #best.
  * 
@@ -42,7 +42,7 @@ public class TabooBoxSearch {
 
     // 
     //  If old.space1 is equal to old.space2, then the expected number of computations inside this routine is 
-    //  1*(1-(THRESHOLD*2/RANGE)) + 2*(THRESHOLD*2/RANGE)*(1-(THRESHOLD*2/RANGE)) + 3*(THRESHOLD*2/RANGE)^2(1-(THRESHOLD*2/RANGE)) * ...
+    //  1*(1-(THRESHOLD*2/RANGE)) + 2*(THRESHOLD*2/RANGE)*(1-(THRESHOLD*2/RANGE)) + 3*(THRESHOLD*2/RANGE)^2*(1-(THRESHOLD*2/RANGE)) + ...
     //  which is ~ 1.2, when THRESHOLD/RANGE = 1/20  
     //
     private boolean within(Taboo t, Taboo old)

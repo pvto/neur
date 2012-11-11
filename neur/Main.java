@@ -41,7 +41,7 @@ public class Main {
 //        DbSamples dbSamples = new DbSamples(getDbClient());
 //        final float[][][] tdata = createSample();
 //        final float[][][] tdata = dbSamples.loadSample(dataset, sample);
-        final float[][][] tdata = new Sampler().extractSampleFromCSV(
+        final float[][][] tdata = new Sampler().extractSample(
                 new DiskIO().loadCSV(
                 "/media/KINGSTON/nlg/data/MATLAB/"+sample+".data",","),
                 new int[]{1,2,3,4,5},new int[]{0});
