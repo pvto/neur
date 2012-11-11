@@ -12,8 +12,8 @@ public class BackPropagation implements SupervisedLearner<MLP> {
      */
     public final void learn(MLP nw, float[] errorTerm, Object[] params)
     {
-        Neuron[][] nwLayers = nw.getLayers();
-        float[][][] nwFeedWeights = nw.getFeedWeights();
+        Neuron[][] nwLayers = nw.layers;
+        float[][][] nwWeights = nw.weights;
         float learningRateCoef = (Float)params[0];
         
         // preprocess derivatives for activations
@@ -48,7 +48,7 @@ public class BackPropagation implements SupervisedLearner<MLP> {
                     * delta_k[j];
         }
         // update weights from hidden layer to output layer
-        float[][] W = nwFeedWeights[nwLayers.length - 1 - x];
+        float[][] W = nwWeights[nwLayers.length - 1 - x];
         updateWeights(W, LRi, Pj_tmp, nwLayers.length - 1 - x);
 
 
@@ -79,7 +79,7 @@ public class BackPropagation implements SupervisedLearner<MLP> {
                         * delta_j[j];
             }
             // update weights from input to hidden layer
-            W = nwFeedWeights[nwLayers.length - 1 - x];
+            W = nwWeights[nwLayers.length - 1 - x];
             updateWeights(W, LRi, Pj_tmp, nwLayers.length - 1 - x);
             // prepare for next layer up
             delta_k = delta_j;

@@ -1,17 +1,21 @@
 
 package neur;
 
+import java.io.Serializable;
+import neur.learning.LearnParams;
 
-public interface NeuralNetwork {
 
-    float[] feedf(float[] input);
-    
-    Neuron[][] getLayers();
+public interface NeuralNetwork extends Serializable {
 
-    float[][][] getFeedWeights();
     
     
-    public <T extends NeuralNetwork> T copy();
+    float[]             feedf(float[] data);
+    Neuron[]            outa();
     
-    public <T extends NeuralNetwork> T newNetwork(int[] dims, int AFUNC);
+    <T extends NeuralNetwork> 
+     T                  newNetwork(LearnParams p);
+    
+    <T extends NeuralNetwork> 
+     T                  copy();
+    
 }

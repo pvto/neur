@@ -59,7 +59,7 @@ public class Main {
         LearnParams<MLP,ElasticBackProp> p = new LearnParams()
         {{
                 NNW_AFUNC = ActivationFunction.Types.AFUNC_SIGMOID;
-                MODE = TrainMode.ONLINE_MODE;
+                MODE = TrainMode.SUPERVISED_ONLINE_MODE;
                 NNW_DIMS = new int[]{tdata[0][0].length, 30, tdata[0][1].length};
                 //NNW_DIMS = new int[]{2, 40, 2};
 
@@ -133,7 +133,7 @@ public class Main {
         String sql = Q.insertInto("run")
                 .a("date", new Date())
                 .a("runtime", r.totalDur)
-                .a("inlr", r.best.IN().length-1, "hidlr", r.best.layers[1].length-1, "outlr", r.best.OUT().length-1)
+                .a("inlr", r.best.layers[0].length-1, "hidlr", r.best.layers[1].length-1, "outlr", r.best.outa().length-1)
                 .a("teach_mode",r.p.MODE)
                 .a("function",ActivationFunction.Types.asString(r.p.NNW_AFUNC))
                 .a("dyn_lrate",(r.p.DYNAMIC_LEARNING_RATE?1:0))

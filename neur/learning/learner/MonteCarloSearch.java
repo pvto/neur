@@ -2,9 +2,9 @@
 package neur.learning.learner;
 
 import neur.NeuralNetwork;
-import neur.learning.LearningAlgorithm;
 import neur.learning.LearnParams;
 import neur.learning.LearnRec;
+import neur.learning.LearningAlgorithm;
 
 /** A stochastic brute force approach for finding solutions to a network learning task.
  *
@@ -21,7 +21,7 @@ public class MonteCarloSearch {
         T nnw = p.nnw;
         for(int i = 0; i < p.RANDOM_SEARCH_ITERS; i++)
         {
-            nnw = nnw.newNetwork(p.NNW_DIMS, p.NNW_AFUNC);            
+            nnw = nnw.newNetwork(p);
             for(int j = 0; j < 1 + Math.random()*7; j++)
             {
                 r.lastTrainres = p.D.T.trainEpoch(nnw, p.L, p.MODE, new Object[]{p.LEARNING_RATE_COEF});

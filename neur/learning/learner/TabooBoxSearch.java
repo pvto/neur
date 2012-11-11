@@ -89,7 +89,7 @@ public class TabooBoxSearch {
         n = n.newNetwork(); // create a new solution with random weights
 
         Taboo maytaboo = new Taboo();        
-        maytaboo.space1 = flatten(n.feedWeights);
+        maytaboo.space1 = flatten(n.weights);
         boolean within = false;
         for(Taboo old : taboos)
         {
@@ -105,10 +105,10 @@ public class TabooBoxSearch {
         MLP better = n.copy();
         for (int i = 0; i < Math.random() * 3; i++)
         {
-            teach.trainEpoch(better, ebp, TrainMode.ONLINE_MODE, new Object[]{1.0f});   // 1.0 is quite disputable for learning rate; 0.5?
+            teach.trainEpoch(better, ebp, TrainMode.SUPERVISED_ONLINE_MODE, new Object[]{1.0f});   // 1.0 is quite disputable for learning rate; 0.5?
         }            
         Trainres r = valid.trainEpoch(better, ebp, TrainMode.NO_TRAINING, new Object[]{0.1f});
-        maytaboo.space2 = flatten(better.feedWeights);
+        maytaboo.space2 = flatten(better.weights);
         maytaboo.error = r.variance;
         
         

@@ -2,6 +2,7 @@ package neur;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import neur.learning.LearnParams;
 import static neur.struct.ActivationFunction.Types.AFUNC_LINEAR;
 import static neur.struct.ActivationFunction.Types.AFUNC_SIGMOID;
 
@@ -9,18 +10,17 @@ public class MLP implements NeuralNetwork, Serializable {
 
     private static final long serialVersionUID = 20121016L;
 
-    @Override public Neuron[][] getLayers() {           return layers; }
-    @Override public float[][][] getFeedWeights() {     return feedWeights; }
-    @Override public <T extends NeuralNetwork> 
-            T newNetwork(int[] dims, int AFUNC) {       return (T)new MLP(dims, AFUNC); }
-
-    public Neuron[] IN() {                              return layers[0]; }
-    public Neuron[] OUT() {                             return layers[layers.length - 1]; }
+    public Neuron[][]   layers;
+    public Neuron[]     outa() {return layers[layers.length - 1];}    
+    public float[][][] weights;
 
     
-    public Neuron[][] layers;
-    public float[][][] feedWeights;
-    
+    @Override 
+    public <T extends NeuralNetwork> 
+            T  newNetwork(LearnParams p) {return (T)new MLP(p.NNW_DIMS, p.NNW_AFUNC);}
+
+
+
     
     private MLP(){}
     
@@ -29,7 +29,7 @@ public class MLP implements NeuralNetwork, Serializable {
     {
         MLP b = new MLP();
         b.layers = new Neuron[layers.length][];
-        b.feedWeights = new float[feedWeights.length][][];
+        b.weights = new float[weights.length][][];
         for (int lr = 0; lr < layers.length; lr++)
         {
             b.layers[lr] = new Neuron[layers[lr].length];
@@ -37,11 +37,11 @@ public class MLP implements NeuralNetwork, Serializable {
             {
                 b.layers[lr][j] = layers[lr][j].copy();
             }
-            b.feedWeights[lr] = new float[feedWeights[lr].length][];
-            for(int j = 0; j < b.feedWeights[lr].length; j++)
+            b.weights[lr] = new float[weights[lr].length][];
+            for(int j = 0; j < b.weights[lr].length; j++)
             {
-                if (feedWeights[lr] != null && feedWeights[lr][j] != null)
-                b.feedWeights[lr][j] = Arrays.copyOf(feedWeights[lr][j], feedWeights[lr][j].length);
+                if (weights[lr] != null && weights[lr][j] != null)
+                b.weights[lr][j] = Arrays.copyOf(weights[lr][j], weights[lr][j].length);
             }
         }
         return b;
@@ -76,13 +76,13 @@ public class MLP implements NeuralNetwork, Serializable {
             setUnit(i,0,p);
         }
         
-        feedWeights = new float[layerSizes.length][][];
+        weights = new float[layerSizes.length][][];
         int layer = 0;
         for (int s : layerSizes)
         {
             int weightCount = 
                     (layer < layerSizes.length -1 ? layerSizes[layer + 1] : 1);
-            feedWeights[layer] = new float[weightCount][];
+            weights[layer] = new float[weightCount][];
             for (int i = 1; i <= s; i++)
             {
                 addUnit(layer, i, activationFunction);
@@ -112,7 +112,7 @@ public class MLP implements NeuralNetwork, Serializable {
         // add weights for connections from existing perceptrons in previous layer to this unit
         if (layer > 0)
         {
-            float[][] LL = feedWeights[layer - 1];
+            float[][] LL = weights[layer - 1];
             float[] L = new float[layers[layer - 1].length];
             LL[unit-1] = L;
             for (int i = 0; i < L.length; i++)
@@ -138,9 +138,10 @@ public class MLP implements NeuralNetwork, Serializable {
 
 
     /** feeds given data to the input layer and propagates */
+    @Override
     public synchronized float[] feedf(float[] data)
     {
-        Neuron[] Li = IN();
+        Neuron[] Li = layers[0];
         // feed input
         // slot 0 contains bias, do not overwrite
         for (int i = 0; i < data.length; i++)
@@ -159,7 +160,7 @@ public class MLP implements NeuralNetwork, Serializable {
         {
             Neuron[] Li = layers[layer];
             Neuron[] Lj = layers[layer + 1];
-            float[][] feeds = feedWeights[layer];
+            float[][] feeds = weights[layer];
             for (int j = 1; j < Lj.length; j++)
             {
                 float sum = 0f;
@@ -175,7 +176,7 @@ public class MLP implements NeuralNetwork, Serializable {
 
     public float[] getActivation()
     {
-        Neuron[] out = OUT();
+        Neuron[] out = outa();
         float[] ret = new float[out.length - 1];
         for(int i = 1; i < out.length; i++)
         {

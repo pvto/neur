@@ -40,9 +40,9 @@ public final class ElasticBackProp extends BackPropagation {
     @Override
     public void finishEpoch(MLP n, Object[] params)
     {
-        for (int lr = n.feedWeights.length - 2; lr >= 0; lr--)
+        for (int lr = n.weights.length - 2; lr >= 0; lr--)
             for (int i = 0; i < n.layers[lr].length; i++)
-                for(int j = 0; j < n.feedWeights[lr].length; j++)
+                for(int j = 0; j < n.weights[lr].length; j++)
                     resilientUpdate(n, lr, j, i);
     }
 
@@ -81,7 +81,7 @@ public final class ElasticBackProp extends BackPropagation {
             weightChange = sign(param.gradient) * delta;
         }
 
-        n.feedWeights[lr][j][i] += weightChange;
+        n.weights[lr][j][i] += weightChange;
         param.prevWgCh = weightChange;
         param.prevGrad = param.gradient;
         param.gradient = 0;

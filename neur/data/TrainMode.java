@@ -3,8 +3,18 @@ package neur.data;
 
 public enum TrainMode 
 {
-        BATCH_MODE,
-        ONLINE_MODE,
-        MIXED_BO_MODE,
-        NO_TRAINING
+        SUPERVISED_BATCH_MODE(true),
+        SUPERVISED_ONLINE_MODE(true),
+        SUPERVISED_MIXED_BO_MODE(true),
+        NO_TRAINING(false)
+        ;
+        
+
+        private boolean supervised = true;
+        public boolean isSupervised() { return supervised; }
+        
+        private TrainMode(boolean supervised)
+        {
+            this.supervised = supervised;
+        }
 }

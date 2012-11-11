@@ -25,7 +25,7 @@ public class TopologyResult<T extends NeuralNetwork> {
     public Item[]   records;
     public int      best = -1;
     public Trainres trainres;
-    /** Call this, rather than records[best], if you are unsure whether the search will overflow * 
+    /** Call this, rather than records[best], if the search is not finished and could overflow. 
      * @return {records[], (int)best} */
     public synchronized Object[] atomic_getRecordsAndBest() { return new Object[]{records,best}; }
 
@@ -34,11 +34,13 @@ public class TopologyResult<T extends NeuralNetwork> {
     public static class Item {          public Item(LearnRec r, float ft){this.res=r; this.fitness=ft;}
         public LearnRec res;
         public float fitness;
+        public long timestamp = System.currentTimeMillis();
     }
     static Comparator<Item> CompareFitness = new Comparator<Item>() {
         @Override public int compare(Item o1, Item o2) {
             return (o1 == null && o2 == null) ? 0 : 
-                    (o1 == null ? -1 : (o1.fitness > o2.fitness ? 1 : (o1.fitness == o2.fitness ? 0 : -1)));
+                    (o1 == null ? -1 : (o2 == null ? 1 : 
+                    (o1.fitness > o2.fitness ? 1 : (o1.fitness == o2.fitness ? 0 : -1))));
         }
     };
 
@@ -62,6 +64,8 @@ public class TopologyResult<T extends NeuralNetwork> {
                 best = slot;
             if (slot == 0) 
                 sort();
+            if (searchState == SEARCH_NOT_STARTED)
+                searchState = SEARCH_STARTED;
         }
         if (--pendingOperations < 0)
             searchState = SEARCH_FINISHED;
@@ -71,7 +75,7 @@ public class TopologyResult<T extends NeuralNetwork> {
     {
         Item[] records = java.util.Arrays.copyOf(this.records, this.records.length);
         java.util.Arrays.sort(records, CompareFitness);
-        synchronized(this){
+        synchronized(this) {
             this.records = records;
             best = records.length - 1;
         }
