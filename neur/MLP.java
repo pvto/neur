@@ -2,11 +2,8 @@ package neur;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import neur.data.TrainMode;
-import neur.data.TrainingSet;
-import neur.data.Trainres;
-import neur.learning.SupervisedLearner;
-import static neur.struct.ActivationFunction.Types.*;
+import static neur.struct.ActivationFunction.Types.AFUNC_LINEAR;
+import static neur.struct.ActivationFunction.Types.AFUNC_SIGMOID;
 
 public class MLP implements NeuralNetwork, Serializable {
 
@@ -95,16 +92,6 @@ public class MLP implements NeuralNetwork, Serializable {
     }
 
 
-    public float[] getActivation()
-    {
-        Neuron[] out = OUT();
-        float[] ret = new float[out.length - 1];
-        for(int i = 1; i < out.length; i++)
-        {
-            ret[i-1] = out[i].activation;
-        }
-        return ret;
-    }
     
     public void setUnit(int layer, int unit, Neuron p)
     {
@@ -149,19 +136,8 @@ public class MLP implements NeuralNetwork, Serializable {
         return p;
     }
 
-    public synchronized void feed(Iterable<Float> data)
-    {
-        Neuron[] Li = IN();
-        // feed input
-        int i = 1; // slot 0 contains bias, do not overwrite
-        for (Float f : data)
-        {
-            Li[i].netInput = f;
-            Li[i++].activation();
-        }
-        propagate();
-    }
 
+    /** feeds given data to the input layer and propagates */
     public synchronized float[] feedf(float[] data)
     {
         Neuron[] Li = IN();
@@ -176,9 +152,9 @@ public class MLP implements NeuralNetwork, Serializable {
         return getActivation();
     }
 
+    /** prapagate activation from the input layer onwards towards the output layer */
     public void propagate()
     {
-        // propagate
         for (int layer = 0; layer < layers.length - 1; layer++)
         {
             Neuron[] Li = layers[layer];
@@ -197,14 +173,20 @@ public class MLP implements NeuralNetwork, Serializable {
         }
     }
 
-    public Trainres learn(TrainingSet S, SupervisedLearner L, TrainMode mode, Object[] params)
+    public float[] getActivation()
     {
-        return S.train(this, L, mode, params);
+        Neuron[] out = OUT();
+        float[] ret = new float[out.length - 1];
+        for(int i = 1; i < out.length; i++)
+        {
+            ret[i-1] = out[i].activation;
+        }
+        return ret;
     }
- 
+
     
     
-    private int[] getLayerSizes()
+    public int[] getLayerSizes()
     {
         int[] ret = new int[layers.length];
         for (int i = 0; i < ret.length; i++)
