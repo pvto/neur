@@ -43,7 +43,7 @@ public class TrainingSet implements Serializable {
         Trainres res = new Trainres();
         if (mode.isSupervised())
         {
-            res.errorTerms = new float[nnw.outa().length];
+            res.errorTerms = new float[nnw.outv().length];
             res.variance = 0f;
         }
 //        if (mode == TrainMode.MIXED_BO_MODE)

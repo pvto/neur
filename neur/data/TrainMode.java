@@ -6,7 +6,9 @@ public enum TrainMode
         SUPERVISED_BATCH_MODE(true),
         SUPERVISED_ONLINE_MODE(true),
         SUPERVISED_MIXED_BO_MODE(true),
-        NO_TRAINING(false)
+        
+        SUPERVISED_NO_TRAINING(true),
+        UNSUPERVISED_NO_TRAINING(false),
         ;
         
 

@@ -70,7 +70,7 @@ public class Main {
                 TEACH_MAX_ITERS = 1000;
                 TEACH_TARRY_NOT_CONVERGING = 2;
                 DIVERGENCE_PRESUMED = TEACH_MAX_ITERS / 2;
-                RANDOM_SEARCH_ITERS = 1;
+                RANDOM_SEARCH_ITERS = 100;
 
                 D = new Dataset()
                 {{
@@ -109,7 +109,7 @@ public class Main {
     
     private static void runTest(LearnParams p, LearnRec<MLP> r) throws IOException, SQLException
     {
-        new Teachers().monteCarloAndIntensification(p, r, log);
+        new Teachers().tabooBoxAndIntensification(p, r, log);
         
         String filename = "mlp" + File.separator 
                 +p.D.DATASET+"-"+p.D.SAMPLE+"-hid"+(r.best.layers[1].length-1)+"-"
@@ -133,7 +133,7 @@ public class Main {
         String sql = Q.insertInto("run")
                 .a("date", new Date())
                 .a("runtime", r.totalDur)
-                .a("inlr", r.best.layers[0].length-1, "hidlr", r.best.layers[1].length-1, "outlr", r.best.outa().length-1)
+                .a("inlr", r.best.layers[0].length-1, "hidlr", r.best.layers[1].length-1, "outlr", r.best.outv().length-1)
                 .a("teach_mode",r.p.MODE)
                 .a("function",ActivationFunction.Types.asString(r.p.NNW_AFUNC))
                 .a("dyn_lrate",(r.p.DYNAMIC_LEARNING_RATE?1:0))

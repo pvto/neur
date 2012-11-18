@@ -103,11 +103,12 @@ public class TabooBoxSearch {
             taboos.add(maytaboo);
         
         MLP better = n.copy();
-        for (int i = 0; i < Math.random() * 3; i++)
+        int maxGradIters = (int)(Math.random() * 4);
+        for (int i = 0; i < maxGradIters; i++)
         {
             teach.trainEpoch(better, ebp, TrainMode.SUPERVISED_ONLINE_MODE, new Object[]{1.0f});   // 1.0 is quite disputable for learning rate; 0.5?
         }            
-        Trainres r = valid.trainEpoch(better, ebp, TrainMode.NO_TRAINING, new Object[]{0.1f});
+        Trainres r = valid.trainEpoch(better, ebp, TrainMode.SUPERVISED_NO_TRAINING, new Object[]{0.1f});
         maytaboo.space2 = flatten(better.weights);
         maytaboo.error = r.variance;
         

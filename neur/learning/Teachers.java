@@ -123,7 +123,7 @@ public class Teachers {
                 r.imprvEpochs ++;
                 r.okBest = r.testsetCorrect;
                 r.best = nnw.copy();
-                log.log("ok=%d sd=%.5f lrate=%.5f it=%d", r.testsetCorrect, r.lastTrainres.variance, k, r.i);
+                //log.log("ok=%d sd=%.5f lrate=%.5f it=%d", r.testsetCorrect, r.lastTrainres.variance, k, r.i);
             }
             if (p.DYNAMIC_LEARNING_RATE)
             {

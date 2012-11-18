@@ -11,7 +11,7 @@ public class MLP implements NeuralNetwork, Serializable {
     private static final long serialVersionUID = 20121016L;
 
     public Neuron[][]   layers;
-    public Neuron[]     outa() {return layers[layers.length - 1];}    
+    public Neuron[]     outv() {return layers[layers.length - 1];}    
     public float[][][] weights;
 
     
@@ -37,11 +37,14 @@ public class MLP implements NeuralNetwork, Serializable {
             {
                 b.layers[lr][j] = layers[lr][j].copy();
             }
-            b.weights[lr] = new float[weights[lr].length][];
-            for(int j = 0; j < b.weights[lr].length; j++)
+            if (lr < weights.length)
             {
-                if (weights[lr] != null && weights[lr][j] != null)
-                b.weights[lr][j] = Arrays.copyOf(weights[lr][j], weights[lr][j].length);
+                b.weights[lr] = new float[weights[lr].length][];
+                for(int j = 0; j < b.weights[lr].length; j++)
+                {
+                    if (weights[lr] != null && weights[lr][j] != null)
+                    b.weights[lr][j] = Arrays.copyOf(weights[lr][j], weights[lr][j].length);
+                }
             }
         }
         return b;
@@ -76,13 +79,14 @@ public class MLP implements NeuralNetwork, Serializable {
             setUnit(i,0,p);
         }
         
-        weights = new float[layerSizes.length][][];
+        weights = new float[layerSizes.length-1][][];
         int layer = 0;
         for (int s : layerSizes)
         {
             int weightCount = 
                     (layer < layerSizes.length -1 ? layerSizes[layer + 1] : 1);
-            weights[layer] = new float[weightCount][];
+            if (layer < weights.length)
+                weights[layer] = new float[weightCount][];
             for (int i = 1; i <= s; i++)
             {
                 addUnit(layer, i, activationFunction);
@@ -176,7 +180,7 @@ public class MLP implements NeuralNetwork, Serializable {
 
     public float[] getActivation()
     {
-        Neuron[] out = outa();
+        Neuron[] out = outv();
         float[] ret = new float[out.length - 1];
         for(int i = 1; i < out.length; i++)
         {
