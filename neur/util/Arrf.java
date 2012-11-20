@@ -27,6 +27,14 @@ public final class Arrf {
             r[j++] = d[i];
         return r;
     }
+    public static float[]                   col(List<float[][]> data, int j, int i)
+    {
+        float[] r = new float[data.size()];
+        int k = 0;
+        for(float[][] d : data)
+            r[k++] = d[j][i];
+        return r;
+    }    
     public static String[]                  col(List<String[]> data, int i)
     {
         String[] r = new String[data.size()];

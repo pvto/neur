@@ -88,7 +88,7 @@ public class TabooBoxSearch {
         
         n = n.newNetwork(); // create a new solution with random weights
 
-        Taboo maytaboo = new Taboo();        
+        Taboo maytaboo = new Taboo();
         maytaboo.space1 = flatten(n.weights);
         boolean within = false;
         for(Taboo old : taboos)

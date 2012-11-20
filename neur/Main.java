@@ -67,10 +67,10 @@ public class Main {
                 LEARNING_RATE_COEF = 0.1f;
                 DYNAMIC_LEARNING_RATE = true;
                 TRG_ERR = 1e-6f;
-                TEACH_MAX_ITERS = 1000;
+                TEACH_MAX_ITERS = 3000;
                 TEACH_TARRY_NOT_CONVERGING = 2;
                 DIVERGENCE_PRESUMED = TEACH_MAX_ITERS / 2;
-                RANDOM_SEARCH_ITERS = 100;
+                RANDOM_SEARCH_ITERS = 1000;
 
                 D = new Dataset()
                 {{
