@@ -1,18 +1,33 @@
-package mlplearning;
+package data.sierpcube;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 public class SierpinskiCube {
 
-    public static void main(String[] args)
+    public static void main(String[] args) throws IOException
     {
         SierpinskiCube ds = new SierpinskiCube();
         List<float[]> cubeData = new ArrayList<float[]>();
-        int level = 2;
-        int dsSize = (int)Math.pow(20, level) * 10;
-        ds.generateCubes(2, 1f, 0f,0f,0f, cubeData);
-        System.out.println(cubeData.size());
+        int level = 1;
+        ds.generateCubes(level, 1f, 0f,0f,0f, cubeData);
+        System.out.println("Generated " + cubeData.size() + " cubes");
+        int dsSize = (int)Math.pow(20, level-1) * 6 * 100;
+        float[][][] data = ds.generateDataset(dsSize, cubeData);
+        System.out.println("Created dataset, even distribution, size " + data.length);
+        OutputStream out = new FileOutputStream("sierp.data");
+        for (int i = 0; i < data.length; i++) {
+            out.write(
+                    ((java.util.Arrays.toString(data[i][0])+", "
+                    +java.util.Arrays.toString(data[i][1]))
+                        .replaceAll("[\\[\\]]","")+"\r\n").getBytes()
+                    );
+            
+        }
+        out.close();
     }
 
     public float[][][] generateDataset(int size, Iterable<float[]> cubes)
@@ -47,14 +62,14 @@ public class SierpinskiCube {
     }
     
     
-    public void generateCubes(int level, float sze, float x, float y, float z, List<float[]> cubes)
+    public void generateCubes(int level, float size, float x, float y, float z, List<float[]> cubes)
     {
-        float newSize = sze * 1f/3f;
         if (level == 1)
         {
-            cubes.add(new float[]{newSize/2f, x,y,z});
+            cubes.add(new float[]{size/2f, x,y,z});
             return;
         }
+        float newSize = size * 1f/3f;
         for (int k = 0; k < 3; k++) {
             for (int j = 0; j < 3; j++) {
                 for (int i = 0; i < 3; i++) {
@@ -62,9 +77,9 @@ public class SierpinskiCube {
                     else
                         generateCubes(level-1, 
                                 newSize,
-                                z+(float)(k-1)*sze,
-                                y+(float)(j-1)*sze,
-                                x+(float)(i-1)*sze,
+                                z+(float)(k-1)*newSize,
+                                y+(float)(j-1)*newSize,
+                                x+(float)(i-1)*newSize,
                                 cubes
                                 );
                 }
