@@ -39,12 +39,12 @@ public class Sampler {
                         .replace(',', '.');
                 if (real[j])
                 {
-                    if (!cols[j].matches("(\\d*\\.\\d+|\\d+(\\.\\d*)?)"))    // not a decimal number
+                    if (!cols[j].matches("-?(\\d*\\.\\d+|\\d+(\\.\\d*)?)"))    // not a decimal number
                     {
                         integral[j] = false;
                         real[j] = false;
                     }
-                    else if (!cols[j].matches("\\d+") || Long.parseLong(cols[j]) > DISCR_DATA_UPPER_THRESHOLD)
+                    else if (!cols[j].matches("-?\\d+") || Long.parseLong(cols[j]) > DISCR_DATA_UPPER_THRESHOLD)
                     {
                         integral[j] = false;
                     }
