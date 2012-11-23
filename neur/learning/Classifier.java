@@ -5,7 +5,7 @@ import neur.NeuralNetwork;
 import neur.data.TrainingSet;
 
 public abstract class Classifier {
-    
+
     public static final class ClassifierType {
 
         public static final int 
@@ -17,7 +17,8 @@ public abstract class Classifier {
     
     public abstract int TYPE();
     public abstract boolean correctness(float[][] sample, float[] result);
-    
+    public abstract float[] normalisedClassification(float[][] sample, float[] nnwOutput);
+        
     public float[] params = {};
     
     public int correctCount(TrainingSet S, NeuralNetwork N)

@@ -3,6 +3,7 @@ package neur.learning.clf;
 
 import java.io.Serializable;
 import neur.learning.Classifier;
+import neur.util.Arrf;
 
 
 public class Fast1OfNClassifier extends Classifier implements Serializable
@@ -11,20 +12,26 @@ public class Fast1OfNClassifier extends Classifier implements Serializable
     @Override
     public boolean correctness(float[][] sample, float[] result)
     {
-        int bestInd = 0;
-        float best = result[0];
-        for (int i = 1; i < result.length; i++)
-        {
-            if (result[i] > best)
-            {
-                best = result[bestInd = i];
-            }
-        }
-        return (sample[1][bestInd] > 0f);
+        return (sample[1][Arrf.maxInd(result)] > 0f);
     }
 
     @Override
     public final int TYPE() {
         return Classifier.ClassifierType.CHOOSE_1_OF_n;
+    }
+
+    @Override
+    public float[] normalisedClassification(float[][] d, float[] res)
+    {
+        float[] ret = new float[res.length];
+        int winner = Arrf.maxInd(res);
+        for (int i = 0; i < ret.length; i++)
+        {
+            if (winner == i)
+                ret[i] = 1f;
+            else
+                ret[i] = 0;                
+        }
+        return ret;
     }
 }

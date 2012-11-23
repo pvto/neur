@@ -120,6 +120,15 @@ public final class Arrf {
                 return true;
         return false;
     }
+    public static int maxInd(float[] result)
+    {
+        int bestInd = 0;
+        float best = result[0];
+        for (int i = 1; i < result.length; i++)
+            if (result[i] > best)
+                best = result[bestInd = i];
+        return bestInd;
+    }
     
     
     // --- data conversion and normalisation --- //
@@ -235,7 +244,7 @@ public final class Arrf {
     {
         return (float)Math.sqrt((float)evdist_variance(data));
     }
-    
+
     
 
 }

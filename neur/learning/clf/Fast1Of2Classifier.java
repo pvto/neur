@@ -21,4 +21,19 @@ public class Fast1Of2Classifier extends Classifier implements Serializable
         return Classifier.ClassifierType.CHOOSE_1_OF_2;
     }
 
+    @Override
+    public float[] normalisedClassification(float[][] sample, float[] nnwOutput)
+    {
+        boolean ok = correctness(sample, nnwOutput);
+        if (nnwOutput[0] > nnwOutput[1])
+        {
+            return new float[]{ok?1f:0f,ok?0f:1f};
+        }
+        else if (nnwOutput[1] > nnwOutput[0])
+        {
+            return new float[]{ok?0f:1f,ok?1f:0f};
+        }
+        return new float[]{0f,0f};
+    }
+
 }
