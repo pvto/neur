@@ -1,0 +1,60 @@
+fov{z -4 }
+rule start{
+  scub{
+    rx 15 ry 25
+    DEF{ iter = 3 }
+  }
+  3000*{}
+  {
+    dot{ x (rnd()*1.5+x-.75) 
+        y (rnd()*1.5+y-.75) 
+        z (rnd()*1.5+z-.75) s .01
+        DEF{ OK = irnd(1)+x}
+    }
+  }
+}
+
+rule dot{
+    if(OK=1){SPHERE{G 1}}
+    if(OK=0){SPHERE{R 1}}
+}
+
+
+rule scub {
+
+  if(iter = 1) {
+    draw{}
+  }
+  if(iter > 1)
+  {
+    2*{x (2/3)}
+    3*{y (1/3)}
+    2*{z (2/3)}
+    {
+      next{s (1/3) x -1 y -1 z -1}  
+    }
+    2*{ry 90}
+    2*{z (2/3)}
+    2*{y (2/3)}
+    {
+      next{s (1/3) z -1 y -1 }
+    }
+  }
+}
+rule next { scub {DEF{iter=iter-1}} }
+rule draw{
+    block{z -.5}
+    block{z .5 ry 180}
+    block{x -.5 ry -90}
+    block{x .5 ry 90}
+    block{y -.5 rx 90}
+    block{y .5 rx -90}
+}
+rule block{
+    SQUARE{L 1}
+    SQUARE{B .1 G .1 R .1 s .995 z -.01}
+}
+light L1{ point(0,.5,0){s .5 RGB 1 1 1}}
+// light L2{ point(-.5,0,0){s .5 RGB 1 1 1}}
+// light L3{ point(0,0,-.5){s .5 RGB 1 1 1}}
+
