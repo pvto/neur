@@ -132,6 +132,44 @@ public class Sampler {
                 }
             }
         }
+        // if classifying, make the distribution of output classes even by randomly copying input rows into the sample
+        if (out.length == 1 && totalOuts > 1)
+        {
+            int[] volumes = new int[totalOuts];
+            for (int k = 0; k < r.length; k++)
+                for (int j = 0; j < volumes.length; j++)
+                    if (r[k][1][j] != 0f)
+                        volumes[j] ++;
+            int max = max(volumes);
+            int additions = sum(subtract(max, volumes));
+            int origlen = r.length;
+            int k = origlen;
+            r = java.util.Arrays.copyOf(r, r.length + additions);
+
+            while(k < r.length)
+            {
+                for (int i = 0; i < volumes.length; i++)
+                {
+                    if (volumes[i] == max) 
+                        continue;
+                    for(;;)
+                    {
+                        int itemInd = (int)(Math.random() * origlen);
+                        if (r[itemInd][1][i] == 0f)
+                            continue;
+                        r[k++] = r[itemInd];
+                        volumes[i]++;
+                        break;
+                    }
+                }
+            }
+            System.out.println("padded sample from within: " + origlen + " to " + r.length);
+        }
+        
+        
+            System.out.println("shuffling");
+            r = shuffle(r);
+        
         return r;
     }
 
