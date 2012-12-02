@@ -106,11 +106,20 @@ public class TabooBoxSearch {
         int maxGradIters = (int)(Math.random() * 4);
         for (int i = 0; i < maxGradIters; i++)
         {
-            teach.trainEpoch(better, ebp, TrainMode.SUPERVISED_ONLINE_MODE, new Object[]{1.0f});   // 1.0 is quite disputable for learning rate; 0.5?
-        }            
+            teach.trainEpoch(better, ebp, TrainMode.SUPERVISED_ONLINE_MODE, new Object[]{0.5f});
+        }
         Trainres r = valid.trainEpoch(better, ebp, TrainMode.SUPERVISED_NO_TRAINING, new Object[]{0.1f});
-        maytaboo.space2 = flatten(better.weights);
-        maytaboo.error = r.variance;
+        if (Float.isNaN(r.variance))
+        {   // suggested nw diverged after gradient learning - insert only a point into taboo space
+            maytaboo.space2 = maytaboo.space1;
+            r = valid.trainEpoch(n, ebp, TrainMode.SUPERVISED_NO_TRAINING, new Object[]{0.1f});
+            maytaboo.error = r.variance;
+        }
+        else
+        {   // taboo box found using gradient learning - insert the bos into taboo space
+            maytaboo.space2 = flatten(better.weights);
+            maytaboo.error = r.variance;
+        }
         
         
         if (leastError > maytaboo.error)
