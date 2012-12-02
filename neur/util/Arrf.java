@@ -67,7 +67,13 @@ public final class Arrf {
     {
         return java.util.Arrays.copyOf(A, A.length);
     }
-    
+    public static float[]                   concat(float[] ... arrs)
+    {
+        float[] res = new float[combinedSize(arrs)];
+        for (int i = 0, offset = 0; i < arrs.length; offset += arrs[i++].length)
+            System.arraycopy(arrs[i], 0, res, offset, arrs[i].length);
+        return res;
+    }
     
     // --- conversion methods between different types of arrays --- //
     
@@ -106,6 +112,13 @@ public final class Arrf {
             r += f;
         return r;
     }
+    public static int                       sum(int[] data)
+    {
+        int r = 0;
+        for(int i : data)
+            r += i;
+        return r;
+    }
     public static <T> boolean               contains(T[] data, T val)
     {
         for(T t : data)
@@ -120,14 +133,41 @@ public final class Arrf {
                 return true;
         return false;
     }
-    public static int maxInd(float[] result)
+    public static boolean                   allEqual(int[] data, int value)
+    {
+        for (int i = 0; i < data.length; i++)
+            if (data[i] != value)
+                return false;
+        return true;
+    }
+    public static int                       max(int[] data)
+    {
+        return data[indexOfGreatest(data)];
+    }
+    public static int                       indexOfGreatest(int[] data)
     {
         int bestInd = 0;
-        float best = result[0];
-        for (int i = 1; i < result.length; i++)
-            if (result[i] > best)
-                best = result[bestInd = i];
+        int best = data[0];
+        for (int i = 1; i < data.length; i++)
+            if (data[i] > best)
+                best = data[bestInd = i];
         return bestInd;
+    }    
+    public static int                       indexOfGreatest(float[] data)
+    {
+        int bestInd = 0;
+        float best = data[0];
+        for (int i = 1; i < data.length; i++)
+            if (data[i] > best)
+                best = data[bestInd = i];
+        return bestInd;
+    }
+    public static int                       combinedSize(float[] ... arrs)
+    {
+        int size = 0;
+        for (int i = 0; i < arrs.length; i++)
+            size += arrs[i].length;
+        return size;
     }
     
     
@@ -152,7 +192,19 @@ public final class Arrf {
                 data[k][j][i] = norm[k];
         }
     }
-
+    public static <T> T[]                   shuffle(T[] data)
+    {
+        T[] r = java.util.Arrays.copyOf(data, data.length);
+        for (int i = 0; i < r.length * 2; i++)
+        {
+            int x = (int)(Math.random() * r.length);
+            int y = (int)(Math.random() * r.length);
+            T tmp = r[y];
+            r[y] = r[x];
+            r[x] = tmp;
+        }
+        return r;
+    }
     
     
     // --- data property extraction --- //
@@ -215,7 +267,15 @@ public final class Arrf {
             R[i] = A[i] + B[i];
         }
         return R;
-    }    
+    }  
+    public static int[]                     subtract(int from, int[] A)
+    {
+        int[] r = new int[A.length];
+        for (int i = 0; i < r.length; i++) {
+            r[i] = from - A[i];
+        }
+        return r;
+    }
     
 
     // --- statistical functions for even distributions --- //
