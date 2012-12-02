@@ -63,6 +63,21 @@ public final class Arrf {
             }
         return ret;
     }
+    public static float[][][]               copy(float[][][] data)
+    {
+        float[][][] r = new float[data.length][][];
+        for (int k = 0; k < data.length; k++)
+        {
+            r[k] = new float[data[k].length][];
+            for (int j = 0; j < data[k].length; j++)
+            {
+                r[k][j] = new float[data[k][j].length];
+                for (int i = 0; i < data[k][j].length; i++)
+                    r[k][j][i] = data[k][j][i];
+            }
+        }
+        return r;
+    }
     public static int[]                     copy(int[] A)
     {
         return java.util.Arrays.copyOf(A, A.length);
@@ -140,19 +155,11 @@ public final class Arrf {
                 return false;
         return true;
     }
-    public static int                       max(int[] data)
-    {
-        return data[indexOfGreatest(data)];
-    }
-    public static int                       indexOfGreatest(int[] data)
-    {
-        int bestInd = 0;
-        int best = data[0];
-        for (int i = 1; i < data.length; i++)
-            if (data[i] > best)
-                best = data[bestInd = i];
-        return bestInd;
-    }    
+    public static float                     max(float[] data)  {    return data[indexOfGreatest(data)]; }
+    public static int                       max(int[] data)    {    return data[indexOfGreatest(data)]; }
+    public static float                     min(float[] data)  {    return data[indexOfLeast(data)]; }
+
+
     public static int                       indexOfGreatest(float[] data)
     {
         int bestInd = 0;
@@ -162,6 +169,25 @@ public final class Arrf {
                 best = data[bestInd = i];
         return bestInd;
     }
+    public static int                       indexOfGreatest(int[] data)
+    {
+        int bestInd = 0;
+        int best = data[0];
+        for (int i = 1; i < data.length; i++)
+            if (data[i] > best)
+                best = data[bestInd = i];
+        return bestInd;
+    }
+    public static int                       indexOfLeast(float[] data)
+    {
+        int bestInd = 0;
+        float best = data[0];
+        for (int i = 1; i < data.length; i++)
+            if (data[i] < best)
+                best = data[bestInd = i];
+        return bestInd;
+    }
+
     public static int                       combinedSize(float[] ... arrs)
     {
         int size = 0;
@@ -176,21 +202,25 @@ public final class Arrf {
     public static float[]                   normalise(float[] data)
     {
         float[] r = new float[data.length];
-        float mean = sum(data);
-        if (mean == 0f) mean = 1f;  // can't div by zero
+        float max = max(data);
+        float min = min(data);
         for (int i = 0; i < r.length; i++)
-            r[i] = (data[i] / mean);
+            r[i] = (data[i] - min) / (max - min);
         return r;
     }
-    public static void                      normalise(float[][][] data)
+    public static float[][][]               normalise(float[][][] data)
     {
+        float[][][] r = copy(data);
         for(int j = 0; j < data[0].length; j++)
         for (int i = 0; i < data[0][j].length; i++)
         {
             float[] norm = normalise(col(data, j, i));
             for (int k = 0; k < norm.length; k++)
-                data[k][j][i] = norm[k];
+            {
+                r[k][j][i] = norm[k];
+            }
         }
+        return r;
     }
     public static <T> T[]                   shuffle(T[] data)
     {
