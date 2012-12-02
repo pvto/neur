@@ -106,7 +106,7 @@ public class TabooBoxSearch {
         int maxGradIters = (int)(Math.random() * 4);
         for (int i = 0; i < maxGradIters; i++)
         {
-            teach.trainEpoch(better, ebp, TrainMode.SUPERVISED_ONLINE_MODE, new Object[]{0.5f});
+            teach.trainEpoch(better, ebp, TrainMode.SUPERVISED_ONLINE_MODE, new Object[]{0.1f});    // too big a learning coefficient will lead to locking into local minima
         }
         Trainres r = valid.trainEpoch(better, ebp, TrainMode.SUPERVISED_NO_TRAINING, new Object[]{0.1f});
         if (Float.isNaN(r.variance))
