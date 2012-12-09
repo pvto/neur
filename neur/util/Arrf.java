@@ -188,7 +188,7 @@ public final class Arrf {
         return bestInd;
     }
 
-    public static int                       combinedSize(float[] ... arrs)
+    public static <T> int                   combinedSize(T[] ... arrs)
     {
         int size = 0;
         for (int i = 0; i < arrs.length; i++)

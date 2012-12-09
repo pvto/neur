@@ -67,7 +67,7 @@ public class TopologyResult<T extends NeuralNetwork> {
             if (searchState == SEARCH_NOT_STARTED)
                 searchState = SEARCH_STARTED;
         }
-        if (--pendingOperations < 0)
+        if (--pendingOperations <= 0)
             searchState = SEARCH_FINISHED;
     }
 
