@@ -12,7 +12,7 @@ public class Fast1OfNClassifier extends Classifier implements Serializable
     @Override
     public boolean correctness(float[][] sample, float[] result)
     {
-        return (sample[1][Arrf.maxInd(result)] > 0f);
+        return (sample[1][Arrf.indexOfGreatest(result)] > 0f);
     }
 
     @Override
@@ -24,7 +24,7 @@ public class Fast1OfNClassifier extends Classifier implements Serializable
     public float[] normalisedClassification(float[][] d, float[] res)
     {
         float[] ret = new float[res.length];
-        int winner = Arrf.maxInd(res);
+        int winner = Arrf.indexOfGreatest(res);
         for (int i = 0; i < ret.length; i++)
         {
             if (winner == i)

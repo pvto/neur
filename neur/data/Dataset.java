@@ -70,8 +70,9 @@ public class Dataset implements Serializable {
                 float tmean = evdist_mean(tcol);
                 float tvar = evdist_variance(tcol);
                 error += (tmean - mean);
-                 
+                // FIXME
             }
+        nok = true;
         return nok;
     }
 

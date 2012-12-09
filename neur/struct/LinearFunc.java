@@ -1,6 +1,8 @@
 package neur.struct;
 
-public class LinearFunc implements ActivationFunction {
+import neur.struct.ActivationFunction.ActivationFunction0;
+
+public class LinearFunc extends ActivationFunction0 {
 
     @Override
     public float get(float val)

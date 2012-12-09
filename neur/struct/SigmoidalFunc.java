@@ -1,14 +1,16 @@
 package neur.struct;
 
-public class SigmoidalFunc implements ActivationFunction {
+public class SigmoidalFunc extends ActivationFunction.ActivationFunctionN {
 
-    public float k = 3f;
+    {
+        setParameters(new float[]{3f});
+    }
 
     public float get(float val)
     {
         float activation = 
                 1f
-                / (1f + (float) Math.exp(-k * val));
+                / (1f + (float) Math.exp(-params[0] * val));
         if (activation > 1f) {
             activation = 1f;
         }
@@ -23,7 +25,7 @@ public class SigmoidalFunc implements ActivationFunction {
     @Override
     public float derivative(float val)
     {
-        return k * val * (1f - val) 
+        return params[0] * val * (1f - val) 
                 + 0.1f; // fix for the "flat spot problem"
     }
 }

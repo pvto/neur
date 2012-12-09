@@ -1,8 +1,8 @@
 package neur.struct;
 
-public class SinFunc implements ActivationFunction {
+import neur.struct.ActivationFunction.ActivationFunctionN;
 
-    public float k = 3f;
+public class SinFunc extends ActivationFunctionN {
 
     public float get(float val)
     {

@@ -10,14 +10,14 @@ import neur.data.Trainres;
 import neur.learning.learner.MonteCarloSearch;
 import neur.learning.learner.TabooBoxSearch;
 import neur.learning.learner.TabooBoxSearch.Taboo;
-import neur.util.Log;
 import neur.util.Arrf;
+import neur.util.Log;
 
 public class Teachers {
 
     public <T extends NeuralNetwork, U extends LearningAlgorithm> 
             
-            void monteCarloAndIntensification(LearnParams<T,U> p, LearnRec r, Log log)
+            void monteCarloAndIntensification(LearnParams<T,U> p, LearnRecord r, Log log)
     {
         monteCarlo(p, r, log);
         wrapup(p, r);            
@@ -35,15 +35,18 @@ public class Teachers {
     
     public <T extends NeuralNetwork, U extends LearningAlgorithm> 
             
-            void tabooBoxAndIntensification(LearnParams<MLP,U> p, LearnRec r, Log log)
+            void tabooBoxAndIntensification(LearnParams<MLP,U> p, LearnRecord r, Log log)
     {
-        tabooBox(p, r, log);
-        wrapup(p, r);            
-        logSuccess(log, r.vldsetCorrect, r.testsetCorrect, p.D.T, p.D.V);
-        
-        if (r.testsetCorrect == p.D.V.set.size() && r.vldsetCorrect == p.D.T.set.size())
+        if (p.RANDOM_SEARCH_ITERS > 0)
         {
-            return;
+            tabooBox(p, r, log);
+            wrapup(p, r);            
+            logSuccess(log, r.vldsetCorrect, r.testsetCorrect, p.D.T, p.D.V);
+
+            if (r.testsetCorrect == p.D.V.set.size() && r.vldsetCorrect == p.D.T.set.size())
+            {
+                return;
+            }
         }
         intensification(p, r, log);
         wrapup(p, r);
@@ -53,7 +56,7 @@ public class Teachers {
     
     public <T extends NeuralNetwork, U extends LearningAlgorithm> 
             
-            void monteCarlo(LearnParams<T,U> p, LearnRec r, Log log)
+            void monteCarlo(LearnParams<T,U> p, LearnRecord r, Log log)
     {
         init(r);
         new MonteCarloSearch().learn(p, r);
@@ -63,9 +66,9 @@ public class Teachers {
     
     public <U extends LearningAlgorithm> 
             
-            void tabooBox(LearnParams<MLP,U> p, LearnRec r, Log log)
+            void tabooBox(LearnParams<MLP,U> p, LearnRecord r, Log log)
     {
-        init(r);        
+        init(r);
         MLP nnw = p.nnw;
         MLP best;
         TabooBoxSearch TS = new TabooBoxSearch();
@@ -91,7 +94,7 @@ public class Teachers {
     
     public <T extends NeuralNetwork, U extends LearningAlgorithm>
             
-            void intensification(LearnParams<T,U> p, LearnRec r, Log log)
+            void intensification(LearnParams<T,U> p, LearnRecord r, Log log)
     {
         p.L.clear();        
         init(r);        
@@ -113,8 +116,10 @@ public class Teachers {
             
             if (Float.isNaN(r.lastTrainres.variance))
             {
-                nnw = r.best.copy();
+                if (r.best != null)
+                    nnw = r.best.copy();
                 k = learRok * 0.8f;
+                continue;
             }
            
             r.testsetCorrect = p.CF.correctCount(p.D.V, nnw);
@@ -123,7 +128,7 @@ public class Teachers {
                 r.imprvEpochs ++;
                 r.okBest = r.testsetCorrect;
                 r.best = nnw.copy();
-                //log.log("ok=%d sd=%.5f lrate=%.5f it=%d", r.testsetCorrect, r.lastTrainres.variance, k, r.i);
+                log.log("ok=%d sd=%.5f lrate=%.5f it=%d", r.testsetCorrect, r.lastTrainres.variance, k, r.i);
             }
             if (p.DYNAMIC_LEARNING_RATE)
             {
@@ -176,7 +181,7 @@ public class Teachers {
     
     
     
-    private void init(LearnRec r)
+    private void init(LearnRecord r)
     {
         if (r.start == 0L)
         {
@@ -190,7 +195,7 @@ public class Teachers {
     }
     
     private <T extends NeuralNetwork, U extends LearningAlgorithm> 
-            void wrapup(LearnParams<T,U> p, LearnRec r)
+            void wrapup(LearnParams<T,U> p, LearnRecord r)
     {
         r.vldsetCorrect = p.CF.correctCount(p.D.T, r.best);
         r.testsetCorrect = p.CF.correctCount(p.D.V, r.best);

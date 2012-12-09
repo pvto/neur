@@ -1,7 +1,9 @@
 package neur;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -9,7 +11,7 @@ import neur.auto.in.Sampler;
 import neur.data.Dataset;
 import neur.data.TrainMode;
 import neur.learning.LearnParams;
-import neur.learning.LearnRec;
+import neur.learning.LearnRecord;
 import neur.learning.Teachers;
 import neur.learning.clf.Fast1OfNClassifier;
 import neur.learning.learner.ElasticBackProp;
@@ -33,18 +35,25 @@ public class Main {
         new File("mlp").mkdir();
         
         //intFeed();
-        int max_runs = 40;
+        int max_runs = 1;
         final int dataset = 104;
         final String sample = "new-thyroid";
+                //"sierp-1";
+        int[] in = {1,2,3,4,5},
+                out = new int[]{0};
         final String datagen = sample;
         
 //        DbSamples dbSamples = new DbSamples(getDbClient());
 //        final float[][][] tdata = createSample();
 //        final float[][][] tdata = dbSamples.loadSample(dataset, sample);
-        final float[][][] tdata = new Sampler().extractSample(
-                new DiskIO().loadCSV(
-                "/media/KINGSTON/nlg/data/MATLAB/"+sample+".data",","),
-                new int[]{1,2,3,4,5},new int[]{0});
+        final float[][][] tdata = neur.util.Arrf.normalise(
+                
+                new Sampler().extractSample(
+                new DiskIO().loadCSV("/media/KINGSTON/nlg/data/MATLAB/"+sample+".data",",\\s*"), 
+                in, out))
+                ;
+                //"/media/KINGSTON/nlg/data/MATLAB/new-thyroid.data",","),
+                //new int[]{1,2,3,4,5},new int[]{0});
                 //"/media/KINGSTON/nlg/data/MATLAB/haberman.data",","),
                 //new int[]{0,1,2},new int[]{3});
                 //"/media/KINGSTON/nlg/data/MATLAB/ecoli.data","\\s+"),
@@ -53,21 +62,22 @@ public class Main {
                 //new int[]{0,1,2,3,4,5}, // input layer columns
                 //new int[]{6});  // supervision columns (out layer expected values)
                 
-//        Statf.normalise(tdata);
 //        dbSamples.saveSample(dataset, datagen, sample, tdata);
         //dbSamples.deleteSample(dataset, sample);
         LearnParams<MLP,ElasticBackProp> p = new LearnParams()
         {{
                 NNW_AFUNC = ActivationFunction.Types.AFUNC_SIGMOID;
+                NNW_AFUNC_PARAMS = new float[]{ 3f };
                 MODE = TrainMode.SUPERVISED_ONLINE_MODE;
-                NNW_DIMS = new int[]{tdata[0][0].length, 30, tdata[0][1].length};
-                //NNW_DIMS = new int[]{2, 40, 2};
+                NNW_DIMS = new int[]{tdata[0][0].length, 12, tdata[0][1].length};
 
-                L = new neur.learning.learner.ElasticBackProp();
+                L = new neur.learning.learner.
+                        //BackPropagation();
+                        ElasticBackProp();
                 LEARNING_RATE_COEF = 0.1f;
                 DYNAMIC_LEARNING_RATE = true;
                 TRG_ERR = 1e-6f;
-                TEACH_MAX_ITERS = 3000;
+                TEACH_MAX_ITERS = 6000;
                 TEACH_TARRY_NOT_CONVERGING = 2;
                 DIVERGENCE_PRESUMED = TEACH_MAX_ITERS / 2;
                 RANDOM_SEARCH_ITERS = 1000;
@@ -81,20 +91,18 @@ public class Main {
                         initTestVldSets(data.length * 1 / 10, Slicing.TakeRandom);
                 }};
                 
-                int outlen = D.data[0][1].length;
-//                if (outlen == 2)
-//                    CF = new Classifiers.OptimisedLinearOut2Classifier();
-//                else if (outlen > 2)
-                    CF = new Fast1OfNClassifier();
+                CF = new Fast1OfNClassifier();
         }};        
 
         for (int i = 0; i < max_runs; )
         {
-            p.nnw = new MLP(p.NNW_DIMS, p.NNW_AFUNC);
-            LearnRec<MLP> r = new LearnRec<MLP>(); r.p = p;
+            p.nnw = new MLP(p.NNW_DIMS, ActivationFunction.Types.create(p.NNW_AFUNC, p.NNW_AFUNC_PARAMS));
+            LearnRecord<MLP> r = new LearnRecord<MLP>(); r.p = p;
 //            nnw.layers[0][0].netInput = 1f; // 0f disables bias neuron
 //            nnw.layers[1][0].netInput = 1f; // 0f disables bias neuron
             runTest(p, r);
+            if (i==0)
+                saveResults(sample+".clf", p, r);            
             if (++i % 4 == 0)
             {
                 p.NNW_DIMS[1]++;
@@ -107,7 +115,7 @@ public class Main {
     private static Log log = Log.log;
     
     
-    private static void runTest(LearnParams p, LearnRec<MLP> r) throws IOException, SQLException
+    private static void runTest(LearnParams p, LearnRecord<MLP> r) throws IOException, SQLException
     {
         new Teachers().tabooBoxAndIntensification(p, r, log);
         
@@ -187,6 +195,21 @@ public class Main {
         return data;
     }
 
-    
+    private static void saveResults(String filename, LearnParams<MLP, ElasticBackProp> p, LearnRecord<MLP> r) throws IOException
+    {
+        OutputStream out = new FileOutputStream(filename);
+        for (int i = 0; i < p.D.data.length; i++)
+        {
+            float[][] d = p.D.data[i];
+            float[] res = r.best.feedf(d[0]);
+            float[] interpreted = p.CF.normalisedClassification(d,res);
+            out.write(
+                    (java.util.Arrays.toString(neur.util.Arrf.concat(d[0],res,interpreted,d[1]))
+                    .replaceAll("[\\[\\]]","")+"\r\n").getBytes()
+                    );
+        }
+        out.close();
+    }
 
+    
 }

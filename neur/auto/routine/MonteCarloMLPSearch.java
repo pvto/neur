@@ -7,8 +7,9 @@ import neur.MLP;
 import neur.auto.TopologyResult;
 import neur.auto.TopologySearchRoutine;
 import neur.learning.LearnParams;
-import neur.learning.LearnRec;
+import neur.learning.LearnRecord;
 import neur.learning.Teachers;
+import neur.struct.ActivationFunction;
 import neur.util.Arrf;
 import neur.util.Log;
 
@@ -19,6 +20,8 @@ import neur.util.Log;
 public class MonteCarloMLPSearch implements TopologySearchRoutine<MLP> {
 
     private static Log log = Log.file.bind("mc-srch.log");
+
+    public int rounds = 1;
     
     private class _RecursiveAction extends RecursiveAction
     {
@@ -48,16 +51,30 @@ public class MonteCarloMLPSearch implements TopologySearchRoutine<MLP> {
         
         private void teachOne()
         {
-            LearnParams p = this.p.copy();
-            p.NNW_DIMS = Arrf.copy(this.p.NNW_DIMS);
-            p.NNW_DIMS[1] = low; 
-            p.nnw = new MLP(p.NNW_DIMS, p.NNW_AFUNC);
-            LearnRec<MLP> r = new LearnRec<MLP>(); r.p = p;
-            new Teachers().monteCarloAndIntensification(p, r, log);
-            float fitness = 0f; //TODO
-            res.countDown(r, fitness);
+            LearnRecord<MLP> masterRec = new LearnRecord<MLP>();
+            
+            for (int i = 0; i < rounds; i++)
+            {
+                LearnParams p = this.p.copy();
+                p.NNW_DIMS = Arrf.copy(this.p.NNW_DIMS);
+                p.NNW_DIMS[1] = low; 
+                p.nnw = new MLP(p.NNW_DIMS, ActivationFunction.Types.create(p.NNW_AFUNC, p.NNW_AFUNC_PARAMS));
+                LearnRecord<MLP> r = new LearnRecord<MLP>(); r.p = p;
+                new Teachers().monteCarloAndIntensification(p, r, log);
+                r.fitness = evaluateFitness(r);
+                masterRec.fitness += r.fitness;
+                masterRec.rounds++;
+            }
+            masterRec.fitness = masterRec.fitness / masterRec.rounds;
+            res.countDown(masterRec);
         }
     };
+    
+    float evaluateFitness(LearnRecord r)
+    {
+        // TODO:
+        return 1f;
+    }
     
     @Override
     public TopologyResult<MLP> search(final LearnParams templParams)

@@ -3,8 +3,9 @@ package neur;
 import java.io.Serializable;
 import java.util.Arrays;
 import neur.learning.LearnParams;
-import static neur.struct.ActivationFunction.Types.AFUNC_LINEAR;
-import static neur.struct.ActivationFunction.Types.AFUNC_SIGMOID;
+import neur.struct.ActivationFunction;
+import neur.struct.LinearFunc;
+import neur.struct.SigmoidalFunc;
 
 public class MLP implements NeuralNetwork, Serializable {
 
@@ -16,8 +17,9 @@ public class MLP implements NeuralNetwork, Serializable {
 
     
     @Override 
-    public <T extends NeuralNetwork> 
-            T  newNetwork(LearnParams p) {return (T)new MLP(p.NNW_DIMS, p.NNW_AFUNC);}
+    public MLP newNetwork(LearnParams p) {return new MLP(
+                    p.NNW_DIMS, 
+                    ActivationFunction.Types.create(p.NNW_AFUNC, p.NNW_AFUNC_PARAMS));}
 
 
 
@@ -52,7 +54,7 @@ public class MLP implements NeuralNetwork, Serializable {
 
     public MLP newNetwork()
     {
-        return new MLP(getLayerSizes(), layers[1][0].activationFunction);
+        return new MLP(getLayerSizes(), layers[1][0].ACT);
     }
 
 
@@ -60,14 +62,14 @@ public class MLP implements NeuralNetwork, Serializable {
 //    {}
 
 
-    public Neuron newNeuronForLayer(int layer, int afunc)
+    public Neuron newNeuronForLayer(int layer, ActivationFunction afunc)
     {
-        return new Neuron(layer == 0 ? AFUNC_LINEAR : (afunc < 0 ? AFUNC_SIGMOID : afunc));
+        return new Neuron(layer == 0 ? new LinearFunc() : (afunc == null ? new SigmoidalFunc() : afunc));
     }
 
 
     
-    public MLP(int[] layerSizes, int activationFunction)
+    public MLP(int[] layerSizes, ActivationFunction activationFunction)
     {
         layers = new Neuron[layerSizes.length][];
         for (int i = 0; i < layerSizes.length; i++)
@@ -109,7 +111,7 @@ public class MLP implements NeuralNetwork, Serializable {
         L[unit] = p;        
     }
     
-    public Neuron addUnit(int layer, int unit, int activationFunction)
+    public Neuron addUnit(int layer, int unit, ActivationFunction activationFunction)
     {
         Neuron p = newNeuronForLayer(layer, activationFunction);
         setUnit(layer, unit, p);

@@ -14,6 +14,7 @@ public class Neuron implements Serializable {
 
     public Neuron() {}
     public Neuron(int act) { this.activationFunction = act;  ACT(); }
+    public Neuron(ActivationFunction f) { this.ACT = f;  this.activationParams = f.getParameters(1); }
 
     public Neuron copy()
     {
@@ -35,14 +36,14 @@ public class Neuron implements Serializable {
         return derivativeActivation = ACT.derivative(activation);
     }
     public int activationFunction;
-    public float activationSteepness = 1f;
+    public float[] activationParams = {};
     public transient ActivationFunction ACT;
 
     public ActivationFunction ACT()
     {
         if (ACT == null)
         {
-            ACT = ActivationFunction.Types.create(activationFunction, activationSteepness);
+            ACT = ActivationFunction.Types.create(activationFunction, activationParams);
         }
         return ACT;
     }

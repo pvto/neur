@@ -2,6 +2,7 @@
 package neur.learning;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import neur.NeuralNetwork;
 import neur.data.Dataset;
 import neur.data.TrainMode;
@@ -17,6 +18,7 @@ public class LearnParams<T extends NeuralNetwork, U extends LearningAlgorithm>
 
     public int[] NNW_DIMS;
     public int NNW_AFUNC = ActivationFunction.Types.AFUNC_SIGMOID;
+    public float[] NNW_AFUNC_PARAMS = { 1f };
     public T nnw;
     public Dataset D;
     public Classifier CF;    
@@ -35,6 +37,7 @@ public class LearnParams<T extends NeuralNetwork, U extends LearningAlgorithm>
         LearnParams<T,U> p = new LearnParams<T,U>();
         p.NNW_DIMS = NNW_DIMS;
         p.NNW_AFUNC = NNW_AFUNC;
+        p.NNW_AFUNC_PARAMS = Arrays.copyOf(NNW_AFUNC_PARAMS, NNW_AFUNC_PARAMS.length);
         p.nnw = (T)nnw.copy();
         p.D = D;
         p.CF = CF;
@@ -49,5 +52,5 @@ public class LearnParams<T extends NeuralNetwork, U extends LearningAlgorithm>
         p.DIVERGENCE_PRESUMED = DIVERGENCE_PRESUMED;
         return p;
     }
-    
+
 }

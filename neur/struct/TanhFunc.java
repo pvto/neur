@@ -1,8 +1,12 @@
 package neur.struct;
 
-public class TanhFunc implements ActivationFunction {
+import neur.struct.ActivationFunction.ActivationFunctionN;
 
-    public float slope = 3f;
+public class TanhFunc extends ActivationFunctionN {
+
+    {
+        setParameters(new float[]{3f});
+    }
 
     @Override
     public float get(float val) {
@@ -12,7 +16,7 @@ public class TanhFunc implements ActivationFunction {
             return -1.0f;
         }
 
-        float E_x = (float) Math.exp(this.slope * val);
+        float E_x = (float) Math.exp(params[0] * val);
         return (E_x - 1f) / (E_x + 1f);
     }
 

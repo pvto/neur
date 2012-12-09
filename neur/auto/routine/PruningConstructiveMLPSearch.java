@@ -9,6 +9,7 @@ import neur.auto.TopologySearchRoutine;
 import neur.learning.LearnParams;
 import neur.learning.LearnRecord;
 import neur.learning.Teachers;
+import neur.struct.ActivationFunction;
 import neur.util.Arrf;
 import neur.util.Log;
 
@@ -68,7 +69,7 @@ public class PruningConstructiveMLPSearch implements TopologySearchRoutine {
                 LearnParams p = this.p.copy();
                 p.NNW_DIMS = Arrf.copy(this.p.NNW_DIMS);
                 p.NNW_DIMS[1] = low; 
-                p.nnw = new MLP(p.NNW_DIMS, p.NNW_AFUNC);
+                p.nnw = new MLP(p.NNW_DIMS, ActivationFunction.Types.create(p.NNW_AFUNC, p.NNW_AFUNC_PARAMS));
                 LearnRecord<MLP> r = new LearnRecord<MLP>(); r.p = p;
                 new Teachers().monteCarloAndIntensification(p, r, log);
                 r.fitness = evaluateFitness(r);

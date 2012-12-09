@@ -1,5 +1,7 @@
 package neur.struct;
 
+import java.util.Arrays;
+
 public interface ActivationFunction {
 
     
@@ -11,10 +13,10 @@ public interface ActivationFunction {
         
         public static String asString(int func)
         {
-            return create(func,0f).getClass().getSimpleName();
+            return create(func,null).getClass().getSimpleName();
         }
 
-        public static ActivationFunction create(int activationFunction, float param1) {
+        public static ActivationFunction create(int activationFunction, float[] params) {
             ActivationFunction ACT = null;
             switch (activationFunction)
             {
@@ -22,9 +24,7 @@ public interface ActivationFunction {
                 ACT = new LinearFunc();
                 break;
             case AFUNC_SIGMOID:
-                SigmoidalFunc f = new SigmoidalFunc();
-                f.k = param1;
-                ACT = f;
+                ACT = new SigmoidalFunc();
                 break;
             case AFUNC_SIN:
                 ACT = new SinFunc();
@@ -33,6 +33,15 @@ public interface ActivationFunction {
                 ACT = new TanhFunc();
                 break;
             }
+            // copy any parameters to the target function
+            if (params != null)
+            {
+                float[] p = ACT.getParameters(params.length);
+                for (int i = 0; i < params.length; i++)
+                {
+                    p[i] = params[i];
+                }
+            }
             return ACT;
         }
     }
@@ -40,4 +49,45 @@ public interface ActivationFunction {
     public float get(float val);
 
     public float derivative(float val);
+    
+    
+    /**Returns an array of parameters for the activation function of size n.
+     * 
+     * The idea is that if user client more parameters through this than the function hitherto holds,
+     * it grows its internal array of parameters to the given length.
+     * 
+     * @param n
+     * @return 
+     */
+    public float[] getParameters(int n);
+    
+    
+    public abstract class ActivationFunction0 implements ActivationFunction {
+
+        @Override
+        public float[] getParameters(int n)
+        {
+            return new float[0];
+        }
+        
+    }
+
+    public abstract class ActivationFunctionN implements ActivationFunction {
+
+        public float[] params = {};
+
+        @Override
+        public synchronized float[] getParameters(int n)
+        {
+            if (n <= params.length)
+                return params;
+            return params = Arrays.copyOf(params, n);
+        }
+        
+        public synchronized void setParameters(float[] p)
+        {
+            params = p;
+        }
+    }
+
 }

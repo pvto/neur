@@ -3,7 +3,7 @@ package neur.learning.learner;
 
 import neur.NeuralNetwork;
 import neur.learning.LearnParams;
-import neur.learning.LearnRec;
+import neur.learning.LearnRecord;
 import neur.learning.LearningAlgorithm;
 
 /** A stochastic brute force approach for finding solutions to a network learning task.
@@ -16,7 +16,7 @@ public class MonteCarloSearch {
     
     public <T extends NeuralNetwork, U extends LearningAlgorithm> 
             
-            void learn(LearnParams<T,U> p, LearnRec r)
+    void learn(LearnParams<T,U> p, LearnRecord r)
     {
         T nnw = p.nnw;
         for(int i = 0; i < p.RANDOM_SEARCH_ITERS; i++)

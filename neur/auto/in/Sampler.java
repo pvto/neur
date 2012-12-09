@@ -154,7 +154,7 @@ public class Sampler {
                         continue;
                     for(;;)
                     {
-                        int itemInd = (int)(Math.random() * origlen);
+                        int itemInd = (int)(Math.random() * origlen);   // TODO: rnd functions should be deterministic - would enable the regeneration of the same sample 
                         if (r[itemInd][1][i] == 0f)
                             continue;
                         r[k++] = r[itemInd];
