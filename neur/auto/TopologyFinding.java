@@ -18,13 +18,12 @@ public class TopologyResult<T extends NeuralNetwork> {
             SEARCH_FINISHED        = 2
             ;
 
-    public int searchState = SEARCH_NOT_STARTED;
+    public volatile int searchState = SEARCH_NOT_STARTED;
 
 
-    public int      pendingOperations; 
-    public Item[]   records;
-    public int      best = -1;
-    public Trainres trainres;
+    public volatile int      pendingOperations; 
+    public volatile Item[]   records;
+    public volatile int      best = -1;
     
     /** Call this, rather than records[best], if the search is not finished and could overflow. 
      * @return {records[], (int)best} */
