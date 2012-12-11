@@ -90,7 +90,7 @@ public class MonteCarloMLPSearch implements TopologySearchRoutine<MLP> {
         
         java.util.concurrent.ForkJoinPool fjPool = new ForkJoinPool();
         
-        _RecursiveAction a = new _RecursiveAction(0, size, templParams, searchSpace, res);
+        _RecursiveAction a = new _RecursiveAction(0, size-1, templParams, searchSpace, res);
         fjPool.execute(a);
         // return immediately - client will monitor results 
         return res;

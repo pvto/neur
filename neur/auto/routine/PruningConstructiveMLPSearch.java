@@ -1,9 +1,11 @@
 
 package neur.auto.routine;
 
+import java.math.BigDecimal;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 import neur.MLP;
+import neur.auto.SearchSpace;
 import neur.auto.TopologyResult;
 import neur.auto.TopologySearchRoutine;
 import neur.learning.LearnParams;
@@ -24,18 +26,17 @@ public class PruningConstructiveMLPSearch implements TopologySearchRoutine {
     public float nearnessRule = 2f;
     
     public int rounds = 1;
+    public BigDecimal QUANTISER = new BigDecimal(1.0);
     
     
     private class _RecursiveAction extends RecursiveAction
     {
-        public _RecursiveAction(int low, int high, LearnParams p, TopologyResult res)
+        _RecursiveAction(int low, int high, LearnParams p, SearchSpace s, TopologyResult res)
         {
-            this.low = low;  this.high = high;
-            this.p = p;
-            this.res = res;
-        }
+            this.low = low;  this.high = high;  this.p = p;  this.s = s;  this.res = res;  }
         int low, high;
         LearnParams p;
+        SearchSpace s;
         TopologyResult res;
         
         @Override
@@ -44,11 +45,12 @@ public class PruningConstructiveMLPSearch implements TopologySearchRoutine {
             if (low > high) return;
             if (low == high)
             {
+                p = s.getTopologyForFlattenedIndex(p, low, QUANTISER);
                 teachOne();
             }
             int mid = low + (int)((high-low) * Math.random());
-            _RecursiveAction t = new _RecursiveAction(low, mid, p, res);
-            _RecursiveAction u = new _RecursiveAction(mid+1, high, p, res);
+            _RecursiveAction t = new _RecursiveAction(low, mid, p, s, res);
+            _RecursiveAction u = new _RecursiveAction(mid+1, high, p, s, res);
             invokeAll(t, u);
         }
         
@@ -100,17 +102,16 @@ public class PruningConstructiveMLPSearch implements TopologySearchRoutine {
     }
     
     @Override
-    public TopologyResult<MLP> search(final LearnParams templParams)
+    public TopologyResult<MLP> search(final LearnParams templParams, SearchSpace searchSpace)
     {
-        int first = 1;
-        int last = templParams.D.data.length;
+        int size = searchSpace.linearEstimateForSize(BigDecimal.ONE);
         
-        final TopologyResult<MLP> res = new TopologyResult(last - first + 1);
+        final TopologyResult<MLP> res = new TopologyResult(size);
         res.searchState = res.SEARCH_STARTED;
         
         java.util.concurrent.ForkJoinPool fjPool = new ForkJoinPool();
         
-        _RecursiveAction a = new _RecursiveAction(first, last, templParams, res);
+        _RecursiveAction a = new _RecursiveAction(0, size-1, templParams, searchSpace, res);
         fjPool.execute(a);
         // return immediately - client will monitor results 
         return res;
