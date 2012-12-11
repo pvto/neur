@@ -5,8 +5,8 @@ import java.math.BigDecimal;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 import neur.MLP;
-import neur.auto.SearchSpace;
-import neur.auto.TopologyResult;
+import neur.auto.NNSearchSpace;
+import neur.auto.TopologyFinding;
 import neur.auto.TopologySearchRoutine;
 import neur.learning.LearnParams;
 import neur.learning.LearnRecord;
@@ -31,13 +31,13 @@ public class PruningConstructiveMLPSearch implements TopologySearchRoutine {
     
     private class _RecursiveAction extends RecursiveAction
     {
-        _RecursiveAction(int low, int high, LearnParams p, SearchSpace s, TopologyResult res)
+        _RecursiveAction(int low, int high, LearnParams p, NNSearchSpace s, TopologyFinding res)
         {
             this.low = low;  this.high = high;  this.p = p;  this.s = s;  this.res = res;  }
         int low, high;
         LearnParams p;
-        SearchSpace s;
-        TopologyResult res;
+        NNSearchSpace s;
+        TopologyFinding res;
         
         @Override
         protected void compute()
@@ -45,7 +45,7 @@ public class PruningConstructiveMLPSearch implements TopologySearchRoutine {
             if (low > high) return;
             if (low == high)
             {
-                p = s.getTopologyForFlattenedIndex(p, low, QUANTISER);
+                p = s.resolveTopologyFromFlattenedIndex(p, low, QUANTISER);
                 teachOne();
             }
             int mid = low + (int)((high-low) * Math.random());
@@ -102,11 +102,11 @@ public class PruningConstructiveMLPSearch implements TopologySearchRoutine {
     }
     
     @Override
-    public TopologyResult<MLP> search(final LearnParams templParams, SearchSpace searchSpace)
+    public TopologyFinding<MLP> search(final LearnParams templParams, NNSearchSpace searchSpace)
     {
         int size = searchSpace.linearEstimateForSize(BigDecimal.ONE);
         
-        final TopologyResult<MLP> res = new TopologyResult(size);
+        final TopologyFinding<MLP> res = new TopologyFinding(size);
         res.searchState = res.SEARCH_STARTED;
         
         java.util.concurrent.ForkJoinPool fjPool = new ForkJoinPool();

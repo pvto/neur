@@ -38,7 +38,7 @@ public class LearnParams<T extends NeuralNetwork, U extends LearningAlgorithm>
         p.NNW_DIMS = NNW_DIMS;
         p.NNW_AFUNC = NNW_AFUNC;
         p.NNW_AFUNC_PARAMS = Arrays.copyOf(NNW_AFUNC_PARAMS, NNW_AFUNC_PARAMS.length);
-        p.nnw = (T)nnw.copy();
+        p.nnw = nnw==null?null:(T)nnw.copy();
         p.D = D;
         p.CF = CF;
         p.L = L;

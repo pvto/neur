@@ -159,6 +159,13 @@ public final class Arrf {
     public static int                       max(int[] data)    {    return data[indexOfGreatest(data)]; }
     public static float                     min(float[] data)  {    return data[indexOfLeast(data)]; }
 
+    public static <T> T                     first(T... list)
+    {
+        for(T t : list)
+            if (t != null)
+                return t;
+        return null;
+    }
 
     public static int                       indexOfGreatest(float[] data)
     {

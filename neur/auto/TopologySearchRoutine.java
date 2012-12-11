@@ -10,5 +10,5 @@ import neur.learning.LearnParams;
 public interface TopologySearchRoutine<T extends NeuralNetwork> {
     
     
-    TopologyResult<T> search(LearnParams templParams, SearchSpace searchSpace);
+    TopologyFinding<T> search(LearnParams templParams, NNSearchSpace searchSpace);
 }

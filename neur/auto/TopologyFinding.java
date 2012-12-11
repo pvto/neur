@@ -3,14 +3,13 @@ package neur.auto;
 
 import java.util.Comparator;
 import neur.NeuralNetwork;
-import neur.data.Trainres;
 import neur.learning.LearnRecord;
 
 /**
  *
  * @author Paavo Toivanen
  */
-public class TopologyResult<T extends NeuralNetwork> {
+public class TopologyFinding<T extends NeuralNetwork> {
 
     public static final int 
             SEARCH_NOT_STARTED     = 0,
@@ -46,43 +45,43 @@ public class TopologyResult<T extends NeuralNetwork> {
 
     public void countDown(LearnRecord rec)
     {
-        int slot = pendingOperations - 1;
-        boolean newBest = (best < 0 || records[best].res.fitness < rec.fitness);
-        if (slot < 0)
-        {   // "overflowing" - pendingOperations was given smaller that the actual number of calls to countDown()
-            // - no room for additional search records - throwing the worst record away
-            sort();
-            slot = 0;            
-            if (records[slot].res.fitness >= rec.fitness)
-                slot = -1;
-        }
-        if (slot >= 0)
+        int slot;
+        boolean newBest;
+        synchronized(this)
         {
-            records[slot] = new Item(rec);
-            if (newBest)
-                best = slot;
-            if (slot == 0) 
+            slot = --pendingOperations;
+            if (pendingOperations <= 0)
+                searchState = SEARCH_FINISHED;
+            newBest = (best < 0 || records[best].res.fitness < rec.fitness);
+            if (slot < 0)
+            {   // "overflowing" - pendingOperations was given smaller that the actual number of calls to countDown()
+                // - no room for additional search records - throwing the worst record away
                 sort();
-            if (searchState == SEARCH_NOT_STARTED)
-                searchState = SEARCH_STARTED;
+                slot = 0;            
+                if (records[slot].res.fitness >= rec.fitness)
+                    return;
+            }
         }
-        if (--pendingOperations <= 0)
-            searchState = SEARCH_FINISHED;
+        
+        records[slot] = new Item(rec);
+        if (newBest)
+            best = slot;
+        if (slot == 0) 
+            sort();
+        if (searchState == SEARCH_NOT_STARTED)
+            searchState = SEARCH_STARTED;
     }
 
-    private void sort()
+    private synchronized void sort()
     {
         Item[] records = java.util.Arrays.copyOf(this.records, this.records.length);
         java.util.Arrays.sort(records, CompareFitness);
-        synchronized(this)
-        {
-            this.records = records;
-            best = records.length - 1;
-        }
+        this.records = records;
+        best = records.length - 1;
     }
 
     
-    public TopologyResult(int pendingOperations)
+    public TopologyFinding(int pendingOperations)
     {
         this.pendingOperations = pendingOperations;
         records = new Item[pendingOperations];
