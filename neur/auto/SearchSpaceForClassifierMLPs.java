@@ -25,7 +25,7 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
     {
         simpleDimensions = new SearchDimension[]
         {
-            hiddenLayerSize = SearchDimension.create.dispersed( D.data.length ),
+            hiddenLayerSize = SearchDimension.create.discrete(1, D.data.length, 1),
         };
         
         parameterisedDimensions = new Parameterised[]
@@ -51,6 +51,7 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
         int a = super.linearEstimateForSize(quantiser, activationFunction);
         int h = offset / a;
         ret.NNW_DIMS[1] = h + 1;
+        // TODO: combine classKeyForIndex and classValueForIndex
         ret.NNW_AFUNC = super.classKeyForIndex(quantiser, activationFunction, offset % a)
                 .intValue();
         ret.NNW_AFUNC_PARAMS = new float[]{ super.classValueForIndex(quantiser, activationFunction, offset % a).floatValue()};

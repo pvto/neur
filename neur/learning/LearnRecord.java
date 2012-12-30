@@ -35,12 +35,12 @@ public class LearnRecord<T extends NeuralNetwork> implements Serializable {
     
     public float vldCorrRate()
     {
-        return vldsetCorrect / (float)p.D.T.set.size();
+        return vldsetCorrect / (float)p.D.TRAIN.set.size();
     }
     
     public float testCorrRate()
     {
-        return testsetCorrect / (float)p.D.V.set.size();
+        return testsetCorrect / (float)p.D.TEST.set.size();
     }
 
     public void computeFinalResults()

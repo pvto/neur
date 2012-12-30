@@ -24,17 +24,17 @@ public class MonteCarloSearch {
             nnw = nnw.newNetwork(p);
             for(int j = 0; j < 1 + Math.random()*7; j++)
             {
-                r.lastTrainres = p.D.T.trainEpoch(nnw, p.L, p.MODE, new Object[]{p.LEARNING_RATE_COEF});
+                r.lastTrainres = p.D.TRAIN.trainEpoch(nnw, p.L, p.MODE, new Object[]{p.LEARNING_RATE_COEF});
             }
             p.L.clear();      
-            int testCorrect = p.CF.correctCount(p.D.V, nnw);
-            int vldCorrect = p.CF.correctCount(p.D.T, nnw);
+            int testCorrect = p.CF.correctCount(p.D.TEST, nnw);
+            int vldCorrect = p.CF.correctCount(p.D.TRAIN, nnw);
             if (testCorrect > r.okBest)
             {
                 r.okBest = testCorrect;
                 r.rndBestis = i;
                 r.best = nnw.copy();
-                if (r.okBest == p.D.V.set.size())
+                if (r.okBest == p.D.TEST.set.size())
                 {
                     break;
                 }

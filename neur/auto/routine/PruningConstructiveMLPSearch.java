@@ -60,7 +60,7 @@ public class PruningConstructiveMLPSearch implements TopologySearchRoutine {
             {
                 if (res.records[i] != null)
                 {
-                    if (near(p, res.records[i].res.p))
+                    if (near(p, res.records[i].res.p, s, res))
                         return;
                 }
             }
@@ -84,7 +84,7 @@ public class PruningConstructiveMLPSearch implements TopologySearchRoutine {
 
     };
 
-    public boolean near(LearnParams p, LearnParams q)
+    public boolean near(LearnParams p, LearnParams q, NNSearchSpace s, TopologyFinding res)
     {
         if (p.NNW_DIMS[0] != q.NNW_DIMS[0])
             return false;
@@ -92,11 +92,19 @@ public class PruningConstructiveMLPSearch implements TopologySearchRoutine {
             return false;
         if (Math.abs(p.NNW_DIMS[1] - q.NNW_DIMS[1]) > nearnessRule)
             return false;
+        
+        Object[] oo = res.atomic_getRecordsAndBest();
+        TopologyFinding.Item[] ii = (TopologyFinding.Item[])oo[0];
+        int ind = (Integer)oo[1];
+        if (s.simpleDimensions[0].getDiscretePoints().size() / 3 <
+                Math.abs(ii[ind].res.p.NNW_DIMS[1] - p.NNW_DIMS[1]))
+            return false;
         return true;
     }
 
     float evaluateFitness(LearnRecord r)
     {
+        
         // TODO:
         return 1f;
     }

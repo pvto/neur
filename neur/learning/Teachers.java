@@ -21,15 +21,15 @@ public class Teachers {
     {
         monteCarlo(p, r, log);
         wrapup(p, r);            
-        logSuccess(log, r.vldsetCorrect, r.testsetCorrect, p.D.T, p.D.V);
+        logSuccess(log, r.vldsetCorrect, r.testsetCorrect, p.D.TRAIN, p.D.TEST);
         
-        if (r.testsetCorrect == p.D.V.set.size() && r.vldsetCorrect == p.D.T.set.size())
+        if (r.testsetCorrect == p.D.TEST.set.size() && r.vldsetCorrect == p.D.TRAIN.set.size())
         {
             return;
         }
         intensification(p, r, log);
         wrapup(p, r);
-        logSuccess(log, r.vldsetCorrect, r.testsetCorrect, p.D.T, p.D.V);        
+        logSuccess(log, r.vldsetCorrect, r.testsetCorrect, p.D.TRAIN, p.D.TEST);        
     }
     
     
@@ -41,16 +41,16 @@ public class Teachers {
         {
             tabooBox(p, r, log);
             wrapup(p, r);            
-            logSuccess(log, r.vldsetCorrect, r.testsetCorrect, p.D.T, p.D.V);
+            logSuccess(log, r.vldsetCorrect, r.testsetCorrect, p.D.TRAIN, p.D.TEST);
 
-            if (r.testsetCorrect == p.D.V.set.size() && r.vldsetCorrect == p.D.T.set.size())
+            if (r.testsetCorrect == p.D.TEST.set.size() && r.vldsetCorrect == p.D.TRAIN.set.size())
             {
                 return;
             }
         }
         intensification(p, r, log);
         wrapup(p, r);
-        logSuccess(log, r.vldsetCorrect, r.testsetCorrect, p.D.T, p.D.V);        
+        logSuccess(log, r.vldsetCorrect, r.testsetCorrect, p.D.TRAIN, p.D.TEST);        
     }
     
     
@@ -78,14 +78,14 @@ public class Teachers {
         
         for(int i = 0; i < p.RANDOM_SEARCH_ITERS; i++)
         {
-            if (TS.learnEpoch(p.nnw, p.D.V, p.D.T, taboos))
+            if (TS.learnEpoch(p.nnw, p.D.TEST, p.D.TRAIN, taboos))
             {
                 r.rndBestis = i;
             }
 //            System.out.println(i+" ok="+p.CF.correctCount(p.D.V, TS.best) + " var="+TS.leastError);
         }
         r.best = TS.best;
-        r.okBest = +p.CF.correctCount(p.D.V, TS.best);
+        r.okBest = +p.CF.correctCount(p.D.TEST, TS.best);
         log.log(r.rndBestis+"("+p.RANDOM_SEARCH_ITERS+") ok="+r.okBest + " var="+TS.leastError);
         r.rndSearchDur = System.currentTimeMillis() - r.start;
         log.log("TABOO_SRC in "+r.rndSearchDur+"ms");
@@ -108,11 +108,11 @@ public class Teachers {
 
         for (; r.i < p.TEACH_MAX_ITERS; r.i++)
         {
-            if (r.testsetCorrect == p.D.V.set.size() && sdIncreasing >= p.TEACH_TARRY_NOT_CONVERGING)
+            if (r.testsetCorrect == p.D.TEST.set.size() && sdIncreasing >= p.TEACH_TARRY_NOT_CONVERGING)
             {
                 break;
             }
-            r.lastTrainres = p.D.T.trainEpoch(nnw, p.L, p.MODE, new Object[]{k});
+            r.lastTrainres = p.D.TRAIN.trainEpoch(nnw, p.L, p.MODE, new Object[]{k});
             
             if (Float.isNaN(r.lastTrainres.variance))
             {
@@ -122,7 +122,7 @@ public class Teachers {
                 continue;
             }
            
-            r.testsetCorrect = p.CF.correctCount(p.D.V, nnw);
+            r.testsetCorrect = p.CF.correctCount(p.D.TEST, nnw);
             if (r.testsetCorrect > r.okBest || r.testsetCorrect == r.okBest && r.lastTrainres.variance < resBest.variance)
             {
                 r.imprvEpochs ++;
@@ -197,8 +197,8 @@ public class Teachers {
     private <T extends NeuralNetwork, U extends LearningAlgorithm> 
             void wrapup(LearnParams<T,U> p, LearnRecord r)
     {
-        r.vldsetCorrect = p.CF.correctCount(p.D.T, r.best);
-        r.testsetCorrect = p.CF.correctCount(p.D.V, r.best);
+        r.vldsetCorrect = p.CF.correctCount(p.D.TRAIN, r.best);
+        r.testsetCorrect = p.CF.correctCount(p.D.TEST, r.best);
         r.computeFinalResults();
         r.sd = new float[p.NNW_DIMS[p.NNW_DIMS.length - 1]];
         r.sd[0] = Arrf.evdist_sd(Arrf.subtract(Arrf.col(p.D.data, 1,0), Arrf.col(r.out, 0)));

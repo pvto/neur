@@ -103,7 +103,6 @@ public interface SearchDimension {
 
         public static SearchDimension       combine(SearchDimension... ss)
         {
-            int size = Arrf.combinedSize(ss);
             List S = ss[0].getDiscretePoints();
             ArrayList points = new ArrayList(S);
             List ranges = new ArrayList(ss[0].getContinuousRanges());

@@ -46,13 +46,54 @@ public final class Arrf {
     
     // --- restructuring of data --- //
     
-    public static float[]                   flatten(float[][][] data)
+    public static int                       flattenedSize(float[][] data, int subitemCount)
     {
         int count = 0;
+        for (int i = 0; i < subitemCount; i++)
+            count += data[i].length;
+        return count;
+    }
+    public static int                       flattenedSize(float[][][] data)
+    {
+        int ret = 0;
         for (int k = 0; k < data.length; k++)
-            for (int j = 0; j < data[k].length; j++)
-                count += data[k][j].length;
-        float[] ret = new float[count];
+            ret += flattenedSize(data[k], data[k].length);
+        return ret;
+    }
+    public static int                       flatInd(float[][] data, int[] deflatInd)
+    {
+        return deflatInd[1] + flattenedSize(data, deflatInd[0]);
+    }
+    public static int[]                     deflatInd(float[][] data, int flatInd)
+    {
+        int 
+                acc = 0,
+                i = 0
+                ;
+        for(;;)
+        {
+            if (flatInd < acc + data[i].length)
+            {
+                return new int[]{i,flatInd-acc};
+            }
+            acc += data[i++].length;
+        }
+    }
+    public static float[]                   flatten(float[][] data)
+    {
+        float[] ret = new float[flattenedSize(data, data.length)];
+        int index = 0;
+        for (int k = 0; k < data.length; k++)
+        {
+            int len = data[k].length;
+            System.arraycopy(data[k], 0, ret, index, len);
+            index += len;
+        }
+        return ret;
+    }
+    public static float[]                   flatten(float[][][] data)
+    {
+        float[] ret = new float[flattenedSize(data)];
         int index = 0;
         for (int k = 0; k < data.length; k++)
             for (int j = 0; j < data[k].length; j++)
@@ -89,6 +130,13 @@ public final class Arrf {
             System.arraycopy(arrs[i], 0, res, offset, arrs[i].length);
         return res;
     }
+    public static int[]                     copy(int val, int count)
+    {
+        int[] res = new int[count];
+        for (int i = 0; i < res.length; i++)
+            res[i] = val;
+        return res;
+    }
     
     // --- conversion methods between different types of arrays --- //
     
@@ -104,6 +152,16 @@ public final class Arrf {
         float[] r = new float[data.length];
         for (int i = 0; i < r.length; i++)
             r[i] = Float.parseFloat(data[i]);
+        return r;
+    }
+    public static float[][]                 arrayf(List<float[]> data)
+    {
+        float[][] r = new float[data.size()][];
+        for (int i = 0; i < r.length; i++)
+        {
+            float[] d = data.get(i);
+            r[i] = java.util.Arrays.copyOf(d, d.length);
+        }
         return r;
     }
     public static int[][]                   array(List<int[]> data)
@@ -166,7 +224,13 @@ public final class Arrf {
                 return t;
         return null;
     }
-
+    public static Float                     nonZero(Float ... vals)
+    {
+        for(Float f : vals)
+            if (f != null && f != 0f)
+                return f;
+        return null;
+    }
     public static int                       indexOfGreatest(float[] data)
     {
         int bestInd = 0;
@@ -195,7 +259,7 @@ public final class Arrf {
         return bestInd;
     }
 
-    public static <T> int                   combinedSize(T[] ... arrs)
+    public static int                       combinedSize(float[] ... arrs)
     {
         int size = 0;
         for (int i = 0; i < arrs.length; i++)
@@ -206,7 +270,7 @@ public final class Arrf {
     
     // --- data conversion and normalisation --- //
     
-    public static float[]                   normalise(float[] data)
+    public static float[]                   normaliseMinmax(float[] data)
     {
         float[] r = new float[data.length];
         float max = max(data);
@@ -215,13 +279,13 @@ public final class Arrf {
             r[i] = (data[i] - min) / (max - min);
         return r;
     }
-    public static float[][][]               normalise(float[][][] data)
+    public static float[][][]               normaliseMinmax(float[][][] data)
     {
         float[][][] r = copy(data);
         for(int j = 0; j < data[0].length; j++)
         for (int i = 0; i < data[0][j].length; i++)
         {
-            float[] norm = normalise(col(data, j, i));
+            float[] norm = normaliseMinmax(col(data, j, i));
             for (int k = 0; k < norm.length; k++)
             {
                 r[k][j][i] = norm[k];
@@ -244,13 +308,32 @@ public final class Arrf {
     }
     
     
+    
     // --- data property extraction --- //
     
+    public static float[][]                 classes(float[] data)
+    {
+        float[] ordd = java.util.Arrays.copyOf(data, data.length);
+        java.util.Arrays.sort(ordd);
+        List<float[]> tmp = new ArrayList<>();
+        float[] cur = new float[] {ordd[0], 0};
+        tmp.add(cur);
+        for (int i = 0; i < ordd.length; i++)
+        {
+            if (ordd[i] != cur[0])
+            {
+                tmp.add(cur = new float[] {ordd[i], 1});
+                continue;
+            }
+            cur[1]++;
+        }
+        return arrayf(tmp);
+    }
     public static int[][]                   classes(int[] data)
     {
         int[] ordd = java.util.Arrays.copyOf(data, data.length);
         java.util.Arrays.sort(ordd);
-        List<int[]> tmp = new ArrayList<int[]>();
+        List<int[]> tmp = new ArrayList<>();
         int[] cur = new int[] {ordd[0], 0};
         tmp.add(cur);
         for (int i = 0; i < ordd.length; i++)
@@ -313,7 +396,30 @@ public final class Arrf {
         }
         return r;
     }
-    
+    public static float[]                   subtract(float[] from, float val)
+    {
+        float[] r = new float[from.length];
+        for (int i = 0; i < r.length; i++) {
+            r[i] = from[i] - val;
+        }
+        return r;
+    }
+    public static float[]                   add(float[] from, float val)
+    {
+        float[] r = new float[from.length];
+        for (int i = 0; i < r.length; i++) {
+            r[i] = from[i] + val;
+        }
+        return r;
+    }
+    public static float[]                   div(float[] data, float divisor)
+    {
+        float[] r = new float[data.length];
+        for (int i = 0; i < r.length; i++) {
+            r[i] = data[i] / divisor;
+        }
+        return r;
+    }    
 
     // --- statistical functions for even distributions --- //
     

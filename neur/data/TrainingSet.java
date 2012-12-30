@@ -14,7 +14,7 @@ import neur.util.Arrf;
  */
 public class TrainingSet implements Serializable {
 
-    public List
+    public volatile List
             <float[][]> set = new ArrayList<float[][]>();
     public int MAX_ITERATIONS = Integer.MAX_VALUE;
     
