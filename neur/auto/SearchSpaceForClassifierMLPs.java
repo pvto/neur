@@ -52,19 +52,11 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
         int h = offset / a;
         ret.NNW_DIMS[1] = h + 1;
         // TODO: combine classKeyForIndex and classValueForIndex
-        ret.NNW_AFUNC = super.classKeyForIndex(quantiser, activationFunction, offset % a)
-                .intValue();
-        ret.NNW_AFUNC_PARAMS = new float[]{ super.classValueForIndex(quantiser, activationFunction, offset % a).floatValue()};
-        System.out.println(ret.NNW_AFUNC_PARAMS[0]);
+        BigDecimal[] keyval = super.indexedClassKey_value(quantiser, activationFunction, offset % a);
+        ret.NNW_AFUNC = keyval[0].intValue();
+        ret.NNW_AFUNC_PARAMS = new float[]{ keyval[1].floatValue()};
         return ret;
     }
     
     
-    public static void main(String[] args) {
-        Dataset D = new Dataset(){{ data = new float[3][][]; }};
-        SearchSpaceForClassifierMLPs ss = new SearchSpaceForClassifierMLPs(D);
-        LearnParams p = new LearnParams(){{NNW_DIMS=new int[]{1,2,1};}};
-        System.out.println(
-                ss.resolveTopologyFromFlattenedIndex(p, 23, BigDecimal.ONE));
-    }
 }

@@ -70,31 +70,9 @@ public abstract class SearchSpace {
         return null;
     }
     
-    public BigDecimal classKeyForIndex(BigDecimal quantiser, Parameterised ps, int i)
+    public BigDecimal[] indexedClassKey_value(BigDecimal quantiser, Parameterised ps, int ind)
     {
-        int offset = 0;
-        int classInd = 0;
-        
-        for(BigDecimal b : ps.keys.getDiscretePoints())
-        {
-            offset += linearEstimateForSize(quantiser, ps.forKey(b));
-            if (i < offset)
-                return b;
-        }
-        for (BigDecimal[] range : ps.keys.getContinuousRanges())
-        {
-            SearchDimension d = ps.forKey(range[0]);
-            offset += quantisedSize(range, first( quantiser, d.getQuantiser()))
-                    .multiply(new BigDecimal( linearEstimateForSize(quantiser, d)))
-                    .intValue();
-            if (i < offset)
-                return range[0];
-        }
-        return null;
-    }
-    public BigDecimal classValueForIndex(BigDecimal quantiser, Parameterised ps, int i)
-    {
-        int left = i;
+        int left = ind;
         int classInd = 0;
         
         for(BigDecimal b : ps.keys.getDiscretePoints())
@@ -102,7 +80,7 @@ public abstract class SearchSpace {
             SearchDimension d = ps.forKey(b);
             int size = linearEstimateForSize(quantiser, d); 
             if (left < size)
-                return getIndexedPoint(quantiser, d, left);
+                return new BigDecimal[]{ b, getIndexedPoint(quantiser, d, left) };
             left -= size;
         }
         for (BigDecimal[] range : ps.keys.getContinuousRanges())
@@ -114,7 +92,7 @@ public abstract class SearchSpace {
             {
                 if (left < dsize)
                 {
-                    return getIndexedPoint(quantiser, d, left);
+                    return new BigDecimal[]{ range[0], getIndexedPoint(quantiser, d, left) };
                 }
                 left -= dsize;
             }

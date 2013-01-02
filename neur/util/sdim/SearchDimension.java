@@ -85,8 +85,8 @@ public interface SearchDimension {
             int size = end.subtract(start).divide(step).intValue() + 1;
             ArrayList points = new ArrayList(size);
             BigDecimal v = start.add(start.ZERO);
-            int i = 0;
-            while(i < size)
+            int i = size;
+            while(i-- > 0)
             {
                 points.add(v);
                 v = v.add(step);
