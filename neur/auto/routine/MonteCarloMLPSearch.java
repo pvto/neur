@@ -24,7 +24,6 @@ public class MonteCarloMLPSearch implements TopologySearchRoutine<MLP> {
     private static Log log = Log.file.bind("mc-srch.log");
 
     public int rounds = 1;
-    public BigDecimal QUANTISER = new BigDecimal(1.0);
     
     
     private class _RecursiveAction extends RecursiveAction
@@ -43,7 +42,7 @@ public class MonteCarloMLPSearch implements TopologySearchRoutine<MLP> {
             if (low > high) return;
             if (low == high)
             {
-                p = s.resolveTopologyFromFlattenedIndex(p, low, QUANTISER);
+                p = s.resolveTopologyFromFlattenedIndex(p, low);
                 teachOne();
             }
             int mid = low + (int)((high-low) * Math.random());
@@ -82,7 +81,7 @@ public class MonteCarloMLPSearch implements TopologySearchRoutine<MLP> {
     @Override
     public TopologyFinding<MLP> search(final LearnParams templParams, NNSearchSpace searchSpace)
     {
-        int size = searchSpace.linearEstimateForSize(BigDecimal.ONE);
+        int size = searchSpace.linearEstimateForSize();
         
         final TopologyFinding<MLP> res = new TopologyFinding(size);
         res.searchState = res.SEARCH_STARTED;

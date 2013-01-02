@@ -5,7 +5,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import neur.util.Arrf;
 
 /** Enumerates a list of possible values for a single parameter.
  *
@@ -19,7 +18,7 @@ public interface SearchDimension {
     List<BigDecimal[]> getContinuousRanges();
     
     BigDecimal getQuantiser();
-    
+    SearchDimension putQuantiser(BigDecimal q);
     
     
     public static class Discrete implements SearchDimension
@@ -29,6 +28,7 @@ public interface SearchDimension {
         @Override public List<BigDecimal> getDiscretePoints() {         return points; }
         @Override public List<BigDecimal[]> getContinuousRanges() {     return java.util.Collections.emptyList(); }
         @Override public BigDecimal getQuantiser() {                    return quantiser; }
+        @Override public SearchDimension putQuantiser(BigDecimal q) {   quantiser = q;  return this; }
         public BigDecimal quantiser = BigDecimal.ONE;
         List points = new ArrayList();
     }

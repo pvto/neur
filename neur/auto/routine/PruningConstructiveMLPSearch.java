@@ -26,7 +26,6 @@ public class PruningConstructiveMLPSearch implements TopologySearchRoutine {
     public float nearnessRule = 2f;
     
     public int rounds = 1;
-    public BigDecimal QUANTISER = new BigDecimal(1.0);
     
     
     private class _RecursiveAction extends RecursiveAction
@@ -45,7 +44,7 @@ public class PruningConstructiveMLPSearch implements TopologySearchRoutine {
             if (low > high) return;
             if (low == high)
             {
-                p = s.resolveTopologyFromFlattenedIndex(p, low, QUANTISER);
+                p = s.resolveTopologyFromFlattenedIndex(p, low);
                 teachOne();
             }
             int mid = low + (int)((high-low) * Math.random());
@@ -112,7 +111,7 @@ public class PruningConstructiveMLPSearch implements TopologySearchRoutine {
     @Override
     public TopologyFinding<MLP> search(final LearnParams templParams, NNSearchSpace searchSpace)
     {
-        int size = searchSpace.linearEstimateForSize(BigDecimal.ONE);
+        int size = searchSpace.linearEstimateForSize();
         
         final TopologyFinding<MLP> res = new TopologyFinding(size);
         res.searchState = res.SEARCH_STARTED;

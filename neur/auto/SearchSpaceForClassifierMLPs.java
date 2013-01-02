@@ -45,14 +45,14 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
     }
     
     @Override
-    public LearnParams resolveTopologyFromFlattenedIndex(LearnParams templ, int offset, BigDecimal quantiser)
+    public LearnParams resolveTopologyFromFlattenedIndex(LearnParams templ, int offset)
     {
         LearnParams ret = templ.copy();
-        int a = super.linearEstimateForSize(quantiser, activationFunction);
+        int a = super.linearEstimateForSize(activationFunction);
         int h = offset / a;
         ret.NNW_DIMS[1] = h + 1;
         // TODO: combine classKeyForIndex and classValueForIndex
-        BigDecimal[] keyval = super.indexedClassKey_value(quantiser, activationFunction, offset % a);
+        BigDecimal[] keyval = super.indexedClassKey_value(activationFunction, offset % a);
         ret.NNW_AFUNC = keyval[0].intValue();
         ret.NNW_AFUNC_PARAMS = new float[]{ keyval[1].floatValue()};
         return ret;

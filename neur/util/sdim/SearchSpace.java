@@ -19,50 +19,50 @@ public abstract class SearchSpace {
     
     
     // if you get numeric overflow from this, your quantiser is probably too small...
-    public int linearEstimateForSize(BigDecimal quantiser)
+    public int linearEstimateForSize()
     {
         int ret = 1;
         if (parameterisedDimensions != null)
             for (int i = 0; i < parameterisedDimensions.length; i++)
-                ret *= linearEstimateForSize(quantiser, parameterisedDimensions[i]);
+                ret *= linearEstimateForSize(parameterisedDimensions[i]);
         if (simpleDimensions != null)
             for (int i = 0; i < simpleDimensions.length; i++)
-                ret *= linearEstimateForSize(quantiser, simpleDimensions[i]);
+                ret *= linearEstimateForSize(simpleDimensions[i]);
         return ret;
     }
     
-    public int linearEstimateForSize(BigDecimal quantiser, SearchDimension s)
+    public int linearEstimateForSize(SearchDimension s)
     {
         int ret = s.getDiscretePoints().size();
         for (BigDecimal[] range : s.getContinuousRanges())
-            ret += quantisedSize(range, first( quantiser, s.getQuantiser() ))
+            ret += quantisedSize(range, s.getQuantiser())
                     .intValue();
         return ret;
     }
 
-    public int linearEstimateForSize(BigDecimal quantiser, Parameterised ps)
+    public int linearEstimateForSize(Parameterised ps)
     {
         int ret = 0;
         for(BigDecimal b : ps.keys.getDiscretePoints())
-            ret += linearEstimateForSize(quantiser, ps.forKey(b));
+            ret += linearEstimateForSize(ps.forKey(b));
         for(BigDecimal[] range : ps.keys.getContinuousRanges())
         {
             SearchDimension d = ps.forKey(range[0]);
-            ret += quantisedSize(range, first( quantiser, d.getQuantiser()))
-                    .multiply(new BigDecimal( linearEstimateForSize(quantiser, d)))
+            ret += quantisedSize(range, d.getQuantiser())
+                    .multiply(new BigDecimal( linearEstimateForSize(d)))
                     .intValue();
         }
         return ret;
     }
 
-    public BigDecimal getIndexedPoint(BigDecimal quantiser, SearchDimension s, int ind)
+    public BigDecimal getIndexedPoint(SearchDimension s, int ind)
     {
         if (ind < s.getDiscretePoints().size())
             return s.getDiscretePoints().get(ind);
         ind -= s.getDiscretePoints().size();
         for(BigDecimal[] range : s.getContinuousRanges())
         {
-            ind -= quantisedSize(range, first( quantiser, s.getQuantiser() ))
+            ind -= quantisedSize(range, s.getQuantiser() )
                     .intValue();
             if (ind <= 0)
                 return range[0];
@@ -70,7 +70,7 @@ public abstract class SearchSpace {
         return null;
     }
     
-    public BigDecimal[] indexedClassKey_value(BigDecimal quantiser, Parameterised ps, int ind)
+    public BigDecimal[] indexedClassKey_value(Parameterised ps, int ind)
     {
         int left = ind;
         int classInd = 0;
@@ -78,21 +78,21 @@ public abstract class SearchSpace {
         for(BigDecimal b : ps.keys.getDiscretePoints())
         {
             SearchDimension d = ps.forKey(b);
-            int size = linearEstimateForSize(quantiser, d); 
+            int size = linearEstimateForSize(d); 
             if (left < size)
-                return new BigDecimal[]{ b, getIndexedPoint(quantiser, d, left) };
+                return new BigDecimal[]{ b, getIndexedPoint(d, left) };
             left -= size;
         }
         for (BigDecimal[] range : ps.keys.getContinuousRanges())
         {
             SearchDimension d = ps.forKey(range[0]);
-            int rsize = quantisedSize(range, first( quantiser, d.getQuantiser())).intValue();
-            int dsize = linearEstimateForSize(quantiser, d);
+            int rsize = quantisedSize(range, d.getQuantiser()).intValue();
+            int dsize = linearEstimateForSize(d);
             for(; rsize > 0; rsize--)
             {
                 if (left < dsize)
                 {
-                    return new BigDecimal[]{ range[0], getIndexedPoint(quantiser, d, left) };
+                    return new BigDecimal[]{ range[0], getIndexedPoint(d, left) };
                 }
                 left -= dsize;
             }
