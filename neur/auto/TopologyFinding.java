@@ -61,12 +61,11 @@ public class TopologyFinding<T extends NeuralNetwork> {
                 if (records[slot].res.fitness >= rec.fitness)
                     return;
             }
+            records[slot] = new Item(rec);
+            if (newBest)
+                best = slot;
         }
-        
-        records[slot] = new Item(rec);
-        if (newBest)
-            best = slot;
-        if (slot == 0) 
+        if (pendingOperations == 0) // sort for client's convenience
             sort();
         if (searchState == SEARCH_NOT_STARTED)
             searchState = SEARCH_STARTED;
