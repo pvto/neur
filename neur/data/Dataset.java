@@ -18,8 +18,11 @@ public class Dataset implements Serializable {
         Systematic,
         RandomDueClassification,
     }
+    /** use this name to identify the generating data distribution of the data in this set */
     public String DATA_GEN = "x";
+    /** numeric id for this dataset */
     public int DATASET = 1;
+    /** use this to identify between different samples drawn from the same generating data distribution */
     public String SAMPLE = "A";
     public float[][][] data;
     public volatile TrainingSet TRAIN;
@@ -113,7 +116,14 @@ public class Dataset implements Serializable {
 //    }
 
     
-    
+    /**Creates a slicing of this Dataset into a training set (TRAIN) and a test set (TEST), 
+     * both having stochastically the same distribution of classes.
+     * 
+     * (Classes here are the output classes of a classification task.)
+     * 
+     * @param testSetSize
+     * @return 
+     */
     private TrainingSet[] randomSlicingDueClassification(int testSetSize)
     {
         TrainingSet[] ret = new TrainingSet[]{new TrainingSet(), new TrainingSet()};
