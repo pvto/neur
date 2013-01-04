@@ -2,6 +2,7 @@
 package neur.util;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
 
@@ -129,6 +130,68 @@ public final class Arrf {
         for (int i = 0, offset = 0; i < arrs.length; offset += arrs[i++].length)
             System.arraycopy(arrs[i], 0, res, offset, arrs[i].length);
         return res;
+    }
+    public static <T> Iterable<T>           concatite(final Iterable<T> ... some)
+    {
+        Iterable<T> ret = new Iterable<T>()
+        {
+            @Override  public Iterator<T> iterator()
+            {
+                Object[] more = new Object[some.length];
+                int i = 0;
+                for(Iterable<T> t : some)
+                    more[i++] = t;
+                return ite(more);
+            }
+            private Iterator<T> ite(final Object[] more)
+            {
+                Iterator<T> ite = new Iterator<T>()
+                {
+                    int j = 0;
+                    Iterator<T> curr = null;
+                    @Override
+                    public boolean hasNext()
+                    {
+                        if (j >= more.length)
+                            return false;
+                        if (curr == null)
+                            curr = ((Iterable<T>)more[j]).iterator();
+                        if (!curr.hasNext())
+                        {
+                            j++;
+                            curr = null;
+                            return hasNext();
+                        }
+                        return true;
+                    }
+
+                    @Override
+                    public T next()
+                    {
+                        if (j >= more.length)
+                            return null;
+                        if (curr == null)
+                            curr = ((Iterable<T>)more[j]).iterator();
+                        if (!curr.hasNext())
+                        {
+                            j++;
+                            curr = null;
+                            return next();
+                        }
+                        return curr.next();
+                    }
+
+                    @Override
+                    public void remove()
+                    {
+                        throw new UnsupportedOperationException("Not supported yet.");
+                    }
+                };
+                return ite;
+            }
+            
+        };
+        return ret;
     }
     public static int[]                     copy(int val, int count)
     {

@@ -58,5 +58,11 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
         return ret;
     }
     
-    
+    public boolean equal(LearnParams a, LearnParams b)
+    {
+        if (Math.abs( a.NNW_DIMS[1] - b.NNW_DIMS[1]) < 1
+                && a.NNW_AFUNC == b.NNW_AFUNC && a.NNW_AFUNC_PARAMS[0] == b.NNW_AFUNC_PARAMS[0])
+            return true;
+        return true;
+    }
 }
