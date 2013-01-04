@@ -12,8 +12,7 @@ import neur.auto.TopologyFinding;
 import neur.auto.TopologySearchRoutine;
 import neur.learning.LearnParams;
 import neur.learning.LearnRecord;
-import static neur.util.Arrf.*;
-import neur.util.sdim.SearchSpace;
+import static neur.util.Arrf.concatite;
 
 /**
  *
@@ -33,9 +32,9 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
     public TopologyFinding<MLP> search(final LearnParams templParams, final NNSearchSpace searchSpace)
     {
         final int linsize = searchSpace.linearEstimateForSize();
-        int maxOperations = 
+        final int maxOperations = 
                 Math.min(linsize, linsize / 3 + 4);
-        final TopologyFinding<MLP> f = new TopologyFinding<>(maxOperations);
+        final TopologyFinding<MLP> ret = new TopologyFinding<>(maxOperations);
         
         Runnable r = new Runnable()
         {
@@ -49,7 +48,7 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
                 List<Specimen> deceased = new ArrayList<>();
                 
                 int i = 0;
-                while(f.pendingOperations > 0)
+                while(i < maxOperations)
                 {
                     Specimen eve = null;
                     if (population.size() < 2 || Math.random() > 0.5)
@@ -83,7 +82,7 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
                             eve.p.NNW_AFUNC_PARAMS = b.p.NNW_AFUNC_PARAMS;
                         }
                     }
-                    evaluateFitness(eve);
+                    evaluateFitness(eve, c);
                     population.add(eve);
                     // keep the population relatively small with some fit and some random individuals
                     if (++i % (GENEPOOL_SIZE * 2) == GENEPOOL_SIZE * 2 - 1)
@@ -100,7 +99,8 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
 
 
         };
-        return f;
+        new Thread(r).start();
+        return ret;
     }
     
     private static Comparator<Specimen> FITNESS = 
@@ -119,9 +119,10 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
 
     };
         
-    private static void evaluateFitness(Specimen x)
+    private static void evaluateFitness(Specimen x, RelativeMLPFitnessComparator c)
     {
-
+        
+        c.putFitness(x.r);
     }
 
 }

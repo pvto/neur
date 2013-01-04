@@ -88,7 +88,7 @@ public class Main {
                         DATASET = dataset;
                         SAMPLE = sample;
                         data = tdata;
-                        initTestVldSets(data.length * 1 / 10, Slicing.RandomDueClassification);
+                        initTrain_Test_Sets(data.length * 1 / 10, Slicing.RandomDueClassification);
                 }};
                 
                 CF = new Fast1OfNClassifier();
