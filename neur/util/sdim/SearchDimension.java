@@ -19,18 +19,23 @@ public interface SearchDimension {
     
     BigDecimal getQuantiser();
     SearchDimension putQuantiser(BigDecimal q);
-    
+    /** gives the given object as name to this dimension */
+    SearchDimension setName(Object o);
+    Object getName();
     
     public static class Discrete implements SearchDimension
     {
         public Discrete(){}
         public Discrete(List<BigDecimal> points) {                      this.points.addAll(points); }                   
-        @Override public List<BigDecimal> getDiscretePoints() {         return points; }
+        @Override public List<BigDecimal>   getDiscretePoints() {       return points; }
         @Override public List<BigDecimal[]> getContinuousRanges() {     return java.util.Collections.emptyList(); }
-        @Override public BigDecimal getQuantiser() {                    return quantiser; }
-        @Override public SearchDimension putQuantiser(BigDecimal q) {   quantiser = q;  return this; }
+        @Override public BigDecimal         getQuantiser() {            return quantiser; }
+        @Override public SearchDimension    putQuantiser(BigDecimal q){ quantiser = q;  return this; }
+        @Override public SearchDimension    setName(Object o) {         name = o;       return this; }
+        @Override public Object             getName() {                 return name; }
         public BigDecimal quantiser = BigDecimal.ONE;
         List points = new ArrayList();
+        Object name = (int) (Math.random()  *  Integer.MAX_VALUE);
     }
     public static class Continuous extends Discrete
     {
@@ -44,6 +49,9 @@ public interface SearchDimension {
     {
         public SearchDimension keys = new Continuous();
         private LinkedHashMap<Object,SearchDimension> map = new LinkedHashMap();
+        Object name = (int) (Math.random()  *  Integer.MAX_VALUE);
+        public Parameterised attachName(Object o) {         name = o;       return this; }
+        
         public SearchDimension forKey(BigDecimal key)
         { 
             SearchDimension ret = map.get(key);

@@ -2,6 +2,8 @@
 package neur.util.sdim;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
 import static neur.util.Ranges.quantisedSize;
 import neur.util.sdim.SearchDimension.Parameterised;
 
@@ -16,7 +18,7 @@ public abstract class SearchSpace {
 
 
     
-    
+
     // if you get numeric overflow from this, your quantiser is probably too small...
     public int linearEstimateForSize()
     {
@@ -98,5 +100,24 @@ public abstract class SearchSpace {
         }
         return null;
     }
+
+    
+    
+    
+    // ----- support for name-based reference of dimensions ----- //
+    private Map names;
+    private Map getNames()
+    {
+        if (names != null)
+            return names;
+        names = new HashMap();
+        for(Parameterised p : parameterisedDimensions)
+            names.put(p.name, p);
+        for(SearchDimension s : simpleDimensions)
+            names.put(s.getName(), s);
+        return names;
+    }
+    public Parameterised    parameterisedForName(Object name)   { return (Parameterised) getNames().get(name); }
+    public SearchDimension  dimensionForName(Object name)       { return (SearchDimension) getNames().get(name); }
 
 }
