@@ -1,6 +1,7 @@
 package neur.struct;
 
 import java.util.Arrays;
+import neur.learning.LearnParams;
 
 public interface ActivationFunction {
 
@@ -43,6 +44,12 @@ public interface ActivationFunction {
                 }
             }
             return ACT;
+        }
+
+        /** a shorthand for create() */
+        public static ActivationFunction get(LearnParams p)
+        {
+            return create(p.NNW_AFUNC, p.NNW_AFUNC_PARAMS);
         }
     }
     
