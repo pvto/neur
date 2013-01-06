@@ -16,7 +16,13 @@ public abstract class Classifier {
 
     
     public abstract int TYPE();
-    public abstract boolean correctness(float[][] sample, float[] result);
+    /**
+     * 
+     * @param sample
+     * @param result
+     * @return for classifying tasks, 1 for correct classification and 0 for incorrect
+     */
+    public abstract int correctness(float[][] sample, float[] result);
     public abstract float[] normalisedClassification(float[][] sample, float[] nnwOutput);
         
     public float[] params = {};
@@ -25,8 +31,7 @@ public abstract class Classifier {
     {
         int ok = 0;
         for(float[][] sample : S.set)
-            if (correctness(sample, N.feedf(sample[0])))
-                ok++;
+            ok += correctness(sample, N.feedf(sample[0]));
         return ok;
     }
     

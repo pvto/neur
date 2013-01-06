@@ -10,9 +10,9 @@ public class Fast1OfNClassifier extends Classifier implements Serializable
 {
     //private float THRSH = 0f;
     @Override
-    public boolean correctness(float[][] sample, float[] result)
+    public int correctness(float[][] sample, float[] result)
     {
-        return (sample[1][Arrf.indexOfGreatest(result)] > 0f);
+        return (sample[1][Arrf.indexOfGreatest(result)] > 0f ? 1 : 0);
     }
 
     @Override
