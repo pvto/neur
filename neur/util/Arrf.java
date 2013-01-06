@@ -114,8 +114,7 @@ public final class Arrf {
             for (int j = 0; j < data[k].length; j++)
             {
                 r[k][j] = new float[data[k][j].length];
-                for (int i = 0; i < data[k][j].length; i++)
-                    r[k][j][i] = data[k][j][i];
+                System.arraycopy(data[k][j], 0, r[k][j], 0, r[k][j].length);
             }
         }
         return r;
@@ -149,9 +148,12 @@ public final class Arrf {
                 {
                     int j = 0;
                     Iterator<T> curr = null;
+                    T overhead = null;
                     @Override
                     public boolean hasNext()
                     {
+                        if (overhead != null)
+                            return true;
                         if (j >= more.length)
                             return false;
                         if (curr == null)
@@ -162,12 +164,19 @@ public final class Arrf {
                             curr = null;
                             return hasNext();
                         }
+                        overhead = next();
                         return true;
                     }
 
                     @Override
                     public T next()
                     {
+                        if (overhead != null)
+                        {
+                            T tmp = overhead;
+                            overhead = null;
+                            return tmp;
+                        }
                         if (j >= more.length)
                             return null;
                         if (curr == null)
