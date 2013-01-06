@@ -2,6 +2,7 @@
 package neur.data;
 
 import java.io.Serializable;
+import java.util.BitSet;
 import neur.data.slice.RandomSlicingDueClassification;
 import neur.data.slice.SystematicSlicing;
 
@@ -25,6 +26,7 @@ public class Dataset implements Serializable {
     public float[][][] data;
     public volatile TrainingSet TRAIN;
     public volatile TrainingSet TEST;
+    public volatile BitSet istest;
 //    public volatile TrainingSet ALL;
  
     public int 
@@ -40,17 +42,18 @@ public class Dataset implements Serializable {
     {
 
         TrainingSet[] t_v = null;
+        istest = new BitSet(data.length);
         
         if (slicing == Slicing.Systematic)
         {
             if (sysl == null)
                 sysl = new SystematicSlicing();
-             t_v = sysl.slice(testSetSize, data);
+             t_v = sysl.slice(testSetSize, data, istest);
             
         }
         else if (slicing == Slicing.RandomDueClassification)
         {
-            t_v = new RandomSlicingDueClassification().slice(testSetSize, data);
+            t_v = new RandomSlicingDueClassification().slice(testSetSize, data, istest);
         }
         TRAIN = t_v[0];  TEST = t_v[1];
     }

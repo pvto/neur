@@ -2,6 +2,7 @@
 package neur.data.slice;
 
 import annot.Stateless;
+import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Set;
 import neur.data.TrainingSet;
@@ -20,9 +21,10 @@ import static neur.util.Arrf.*;
 public class RandomSlicingDueClassification {
 
     /**
+     * @param istest this routines sets bits corresponding to test set entries
      * @return {TRAIN, TEST}
      */
-    public static TrainingSet[] slice(int testSetSize, float[][][] data)
+    public static TrainingSet[] slice(int testSetSize, float[][][] data, BitSet istest)
     {
         TrainingSet[] ret = new TrainingSet[]{new TrainingSet(), new TrainingSet()};
         
@@ -67,10 +69,10 @@ public class RandomSlicingDueClassification {
                 k = (int)(Math.random() * data.length);
                 if (data[k][1][j] != classItem[0])
                     continue;
-                if (test.contains(k))
+                if (istest.get(k))
                     continue;
                 
-                test.add(k);
+                istest.set(i);
                 ret[1].addSample(data[k]);
                 
                 for (int x = 0; x < classDistributions.length; x++)
