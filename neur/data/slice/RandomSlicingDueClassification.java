@@ -72,7 +72,7 @@ public class RandomSlicingDueClassification {
                 if (istest.get(k))
                     continue;
                 
-                istest.set(i);
+                istest.set(k);
                 ret[1].addSample(data[k]);
                 
                 for (int x = 0; x < classDistributions.length; x++)
