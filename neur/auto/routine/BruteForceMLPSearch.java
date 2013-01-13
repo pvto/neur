@@ -1,7 +1,6 @@
 
 package neur.auto.routine;
 
-import java.math.BigDecimal;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 import neur.MLP;
@@ -10,8 +9,8 @@ import neur.auto.TopologyFinding;
 import neur.auto.TopologySearchRoutine;
 import neur.learning.LearnParams;
 import neur.learning.LearnRecord;
+import neur.learning.LearnRecord.Item;
 import neur.learning.Teachers;
-import neur.struct.ActivationFunction;
 import neur.util.Arrf;
 import neur.util.Log;
 
@@ -19,11 +18,14 @@ import neur.util.Log;
  *
  * @author Paavo Toivanen
  */
-public class MonteCarloMLPSearch implements TopologySearchRoutine<MLP> {
+public class BruteForceMLPSearch implements TopologySearchRoutine<MLP> {
 
     private static Log log = Log.file.bind("mc-srch.log");
 
     public int rounds = 1;
+    
+    RelativeMLPFitnessComparator c = new RelativeMLPFitnessComparator();
+    
     
     
     private class _RecursiveAction extends RecursiveAction
@@ -53,42 +55,34 @@ public class MonteCarloMLPSearch implements TopologySearchRoutine<MLP> {
         
         private void teachOne()
         {
-            LearnRecord<MLP> masterRec = new LearnRecord<MLP>();
-            
+            LearnRecord<MLP> rec = new LearnRecord<MLP>();
+            LearnParams p = this.p.copy();
+            p.NNW_DIMS = Arrf.copy(this.p.NNW_DIMS);
+            p.NNW_DIMS[1] = low; 
+            rec.p = p;
             for (int i = 0; i < rounds; i++)
             {
-                LearnParams p = this.p.copy();
-                p.NNW_DIMS = Arrf.copy(this.p.NNW_DIMS);
-                p.NNW_DIMS[1] = low; 
-                p.nnw = new MLP(p.NNW_DIMS, ActivationFunction.Types.create(p.NNW_AFUNC, p.NNW_AFUNC_PARAMS));
-                LearnRecord<MLP> r = new LearnRecord<MLP>(); r.p = p;
-                new Teachers().monteCarloAndIntensification(p, r, log);
-                r.fitness = evaluateFitness(r);
-                masterRec.fitness += r.fitness;
-                masterRec.rounds++;
+                rec.p.nnw = new MLP(p);  // former networks are simply discarded; only their results interest us
+                Item it = rec.addItem();
+                new Teachers().monteCarloAndIntensification(p, rec, log);
+                it.finish(rec.best);
             }
-            masterRec.fitness = masterRec.fitness / masterRec.rounds;
-            res.countDown(masterRec);
+            rec.aggregateResults();
+            c.putFitness(rec);
+            res.countDown(rec);
         }
     };
     
-    float evaluateFitness(LearnRecord r)
-    {
-        // TODO:
-        return 1f;
-    }
     
     @Override
     public TopologyFinding<MLP> search(final LearnParams templParams, NNSearchSpace searchSpace)
     {
         int size = searchSpace.linearEstimateForSize();
-        
         final TopologyFinding<MLP> res = new TopologyFinding(size);
         res.searchState = res.SEARCH_STARTED;
         
-        java.util.concurrent.ForkJoinPool fjPool = new ForkJoinPool();
-        
         _RecursiveAction a = new _RecursiveAction(0, size-1, templParams, searchSpace, res);
+        java.util.concurrent.ForkJoinPool fjPool = new ForkJoinPool();
         fjPool.execute(a);
         // return immediately - client will monitor results 
         return res;

@@ -25,7 +25,7 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
     {
         simpleDimensions = new SearchDimension[]
         {
-            hiddenLayerSize = SearchDimension.create.discrete(1, D.data.length, 1),
+            hiddenLayerSize = SearchDimension.create.discrete(1, D.data.length, 1).setName(Dim.HIDDEN_LR_SIZE),
         };
         
         parameterisedDimensions = new Parameterised[]
@@ -40,7 +40,8 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
                         10.0, 20.0, 40.0, 80.0, 
                         100.0, 200.0, 400.0, 800.0
                     ),
-            }),
+            })
+                .attachName(Dim.ACTIVATION_FUNC),
         };
     }
     

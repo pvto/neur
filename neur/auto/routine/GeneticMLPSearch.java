@@ -2,6 +2,7 @@
 package neur.auto.routine;
 
 import annot.Stateless;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -13,6 +14,7 @@ import neur.auto.TopologySearchRoutine;
 import neur.learning.LearnParams;
 import neur.learning.LearnRecord;
 import static neur.util.Arrf.concatite;
+import neur.util.sdim.SearchDimension.Parameterised;
 
 /**
  *
@@ -21,12 +23,46 @@ import static neur.util.Arrf.concatite;
 @Stateless
 public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
 
+    
     private static class Specimen {
         LearnParams p;
         LearnRecord r;
     }
+    /** 
+     * @return a cross between the two given individuals, where continuous properties like 
+     * hidden-layer dimension are picked from an even distribution in [a,b], 
+     * and non-continuous properties like the activation function 
+     * are picked randomly from one of the two, with a small chance for random mutation.
+     */
+    private Specimen cross(Specimen a, Specimen b, NNSearchSpace searchSpace)
+    {
+        Specimen eve = new Specimen();
+        eve.p = a.p.copy();
+        // pick hidden layer dimension
+        int dim = Math.min(a.p.NNW_DIMS[1], b.p.NNW_DIMS[1]);
+        int dim2 = Math.max(a.p.NNW_DIMS[1], b.p.NNW_DIMS[1]);
+        eve.p.NNW_DIMS[1] = dim + (int) ((dim2 - dim) * Math.random());
+        // pick activation function by random with a small probability
+        if (Math.random() < 0.1)
+        {   
+            Parameterised sdimAfunc = searchSpace.parameterisedForName(NNSearchSpace.Dim.ACTIVATION_FUNC);
+            int i = (int) (Math.random() * searchSpace.linearEstimateForSize(sdimAfunc));
+            BigDecimal[] func_steepness = searchSpace.indexedClassKey_value(sdimAfunc, i);
+            eve.p.NNW_AFUNC = func_steepness[0].intValue();
+            eve.p.NNW_AFUNC_PARAMS = new float[]{ func_steepness[1].floatValue() };
+        }
+        // else from either parent
+        else if (Math.random() > 0.5)
+        {
+            eve.p.NNW_AFUNC = b.p.NNW_AFUNC;
+            eve.p.NNW_AFUNC_PARAMS = b.p.NNW_AFUNC_PARAMS;
+        }
+        return eve;
+    }
     
     public int GENEPOOL_SIZE = 20;
+    
+    
     
     @Override
     public TopologyFinding<MLP> search(final LearnParams templParams, final NNSearchSpace searchSpace)
@@ -73,14 +109,7 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
                         if (a == b || searchSpace.equal(a.p, b.p))
                             continue;
                         // ok
-                        eve = new Specimen();
-                        eve.p = a.p.copy();
-                        eve.p.NNW_DIMS[1] = (a.p.NNW_DIMS[1] + b.p.NNW_DIMS[1]) / 2;
-                        if (Math.random() > 0.5)
-                        {
-                            eve.p.NNW_AFUNC = b.p.NNW_AFUNC;
-                            eve.p.NNW_AFUNC_PARAMS = b.p.NNW_AFUNC_PARAMS;
-                        }
+                        eve = cross(a, b, searchSpace);
                     }
                     evaluateFitness(eve, c);
                     population.add(eve);
@@ -110,9 +139,9 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
         @Override
         public int compare(Specimen a, Specimen b)
         {
-            if (a.r.fitness > b.r.fitness)
+            if (a.r.averageFitness > b.r.averageFitness)
                 return 1;
-            if (a.r.fitness < b.r.fitness)
+            if (a.r.averageFitness < b.r.averageFitness)
                 return -1;
             return 0;
         }
@@ -121,7 +150,8 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
         
     private static void evaluateFitness(Specimen x, RelativeMLPFitnessComparator c)
     {
-        
+        // TODO: learning!
+        x.r.aggregateResults();
         c.putFitness(x.r);
     }
 

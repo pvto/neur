@@ -25,6 +25,11 @@ public class MLP implements NeuralNetwork, Serializable {
 
     
     private MLP(){}
+    public  MLP(LearnParams p)
+    { 
+        this(p.NNW_DIMS, ActivationFunction.Types.get(p));
+    }
+    
     
     @Override
     public MLP copy()
@@ -68,7 +73,7 @@ public class MLP implements NeuralNetwork, Serializable {
     }
 
 
-    
+
     public MLP(int[] layerSizes, ActivationFunction activationFunction)
     {
         layers = new Neuron[layerSizes.length][];

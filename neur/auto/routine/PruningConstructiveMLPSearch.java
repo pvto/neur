@@ -1,7 +1,6 @@
 
 package neur.auto.routine;
 
-import java.math.BigDecimal;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 import neur.MLP;
@@ -11,7 +10,6 @@ import neur.auto.TopologySearchRoutine;
 import neur.learning.LearnParams;
 import neur.learning.LearnRecord;
 import neur.learning.Teachers;
-import neur.struct.ActivationFunction;
 import neur.util.Arrf;
 import neur.util.Log;
 
@@ -26,6 +24,8 @@ public class PruningConstructiveMLPSearch implements TopologySearchRoutine {
     public float nearnessRule = 2f;
     
     public int rounds = 1;
+    
+    RelativeMLPFitnessComparator c = new RelativeMLPFitnessComparator();
     
     
     private class _RecursiveAction extends RecursiveAction
@@ -63,22 +63,22 @@ public class PruningConstructiveMLPSearch implements TopologySearchRoutine {
                         return;
                 }
             }
-            LearnRecord<MLP> masterRec = new LearnRecord<MLP>();
-            
+
+            LearnRecord<MLP> rec = new LearnRecord<MLP>();
+            LearnParams p = this.p.copy();
+            p.NNW_DIMS = Arrf.copy(this.p.NNW_DIMS);
+            p.NNW_DIMS[1] = low; 
+            rec.p = p;
             for (int i = 0; i < rounds; i++)
             {
-                LearnParams p = this.p.copy();
-                p.NNW_DIMS = Arrf.copy(this.p.NNW_DIMS);
-                p.NNW_DIMS[1] = low; 
-                p.nnw = new MLP(p.NNW_DIMS, ActivationFunction.Types.create(p.NNW_AFUNC, p.NNW_AFUNC_PARAMS));
-                LearnRecord<MLP> r = new LearnRecord<MLP>(); r.p = p;
-                new Teachers().monteCarloAndIntensification(p, r, log);
-                r.fitness = evaluateFitness(r);
-                masterRec.fitness += r.fitness;
-                masterRec.rounds++;
+                rec.p.nnw = new MLP(p);  // former networks are simply discarded; only their results interest us
+                LearnRecord.Item it = rec.addItem();
+                new Teachers().monteCarloAndIntensification(p, rec, log);
+                it.finish(rec.p.nnw);
             }
-            masterRec.fitness = masterRec.fitness / masterRec.rounds;
-            res.countDown(masterRec);
+            rec.aggregateResults();
+            c.putFitness(rec);
+            res.countDown(rec);
         }
 
     };
@@ -101,12 +101,7 @@ public class PruningConstructiveMLPSearch implements TopologySearchRoutine {
         return true;
     }
 
-    float evaluateFitness(LearnRecord r)
-    {
-        
-        // TODO:
-        return 1f;
-    }
+
     
     @Override
     public TopologyFinding<MLP> search(final LearnParams templParams, NNSearchSpace searchSpace)

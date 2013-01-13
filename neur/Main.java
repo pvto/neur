@@ -122,7 +122,7 @@ public class Main {
         String filename = "mlp" + File.separator 
                 +p.D.DATASET+"-"+p.D.SAMPLE+"-hid"+(r.best.layers[1].length-1)+"-"
                 +ActivationFunction.Types.asString(p.NNW_AFUNC).substring(0,4)
-                +"-ok"+String.format("%.2f", r.testsetCorrect*100.0/p.D.TEST.set.size())
+                +"-ok"+String.format("%.2f", r.bestItem.testsetCorrect*100.0/p.D.TEST.set.size())
                 +"-"+new SimpleDateFormat("yyMMddHHmmss").format(new Date())
                 +".mlp";
         new DiskIO().save(filename, r.best);
@@ -140,7 +140,7 @@ public class Main {
 
         String sql = Q.insertInto("run")
                 .a("date", new Date())
-                .a("runtime", r.totalDur)
+                .a("runtime", r.duration)
                 .a("inlr", r.best.layers[0].length-1, "hidlr", r.best.layers[1].length-1, "outlr", r.best.outv().length-1)
                 .a("teach_mode",r.p.MODE)
                 .a("function",ActivationFunction.Types.asString(r.p.NNW_AFUNC))
@@ -148,12 +148,12 @@ public class Main {
                 .a("learning_rate",r.p.LEARNING_RATE_COEF,"%.3f")
                 .a("sample",r.p.D.data.length, "data_gen", r.p.D.DATA_GEN)
                 .a("testset_size",r.p.D.TEST.set.size(),"vldset_size",r.p.D.TRAIN.set.size())
-                .a("rnd_search_iters",r.p.RANDOM_SEARCH_ITERS, "rnd_best_iter",r.rndBestis, "rnd_search_time",r.rndSearchDur)
-                .a("max_iters",r.p.TEACH_MAX_ITERS, "iters",r.i)
-                .a("targ_sd",r.lastTrainres.variance,"%.5f")
-                .a("imprv_epochs",r.imprvEpochs,"testset_correct",r.testsetCorrect,"vldset_correct",r.vldsetCorrect)
-                .a("testset_percentage",(r.testsetCorrect*100.0/p.D.TEST.set.size()),"%.2f")
-                .a("testset_percentage",(r.vldsetCorrect*100.0/p.D.TRAIN.set.size()),"%.2f")
+                .a("rnd_search_iters",r.p.RANDOM_SEARCH_ITERS, "rnd_best_iter",0, "rnd_search_time",r.duration)
+                .a("max_iters",r.p.TEACH_MAX_ITERS, "iters",0)
+                .a("targ_sd",r.averageSummedError,"%.5f")
+                .a("imprv_epochs",0,"testset_correct",r.bestItem.testsetCorrect,"vldset_correct",r.bestItem.trainsetCorrect)
+                .a("testset_percentage",(r.bestItem.testsetCorrect*100.0/p.D.TEST.set.size()),"%.2f")
+                .a("testset_percentage",(r.bestItem.trainsetCorrect*100.0/p.D.TRAIN.set.size()),"%.2f")
                 .a("mlpfile",filename)
                 .z();
         System.out.println(sql);

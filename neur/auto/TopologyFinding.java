@@ -38,7 +38,7 @@ public class TopologyFinding<T extends NeuralNetwork> {
         @Override public int compare(Item o1, Item o2) {
             return (o1 == null && o2 == null) ? 0 : 
                     (o1 == null ? -1 : (o2 == null ? 1 : 
-                    (o1.res.fitness > o2.res.fitness ? 1 : (o1.res.fitness == o2.res.fitness ? 0 : -1))));
+                    (o1.res.averageFitness > o2.res.averageFitness ? 1 : (o1.res.averageFitness == o2.res.averageFitness ? 0 : -1))));
         }
     };
 
@@ -52,13 +52,13 @@ public class TopologyFinding<T extends NeuralNetwork> {
             slot = --pendingOperations;
             if (pendingOperations <= 0)
                 searchState = SEARCH_FINISHED;
-            newBest = (best < 0 || records[best].res.fitness < rec.fitness);
+            newBest = (best < 0 || records[best].res.averageFitness < rec.averageFitness);
             if (slot < 0)
             {   // "overflowing" - pendingOperations was given smaller that the actual number of calls to countDown()
                 // - no room for additional search records - throwing the worst record away
                 sort();
                 slot = 0;            
-                if (records[slot].res.fitness >= rec.fitness)
+                if (records[slot].res.averageFitness >= rec.averageFitness)
                     return;
             }
             records[slot] = new Item(rec);
