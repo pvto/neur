@@ -69,7 +69,7 @@ public class Main {
                 NNW_AFUNC = ActivationFunction.Types.AFUNC_SIGMOID;
                 NNW_AFUNC_PARAMS = new float[]{ 3f };
                 MODE = TrainMode.SUPERVISED_ONLINE_MODE;
-                NNW_DIMS = new int[]{tdata[0][0].length, 12, tdata[0][1].length};
+                NNW_DIMS = new int[]{tdata[0][0].length, 4, tdata[0][1].length};
 
                 L = new neur.learning.learner.
                         //BackPropagation();
@@ -78,8 +78,7 @@ public class Main {
                 DYNAMIC_LEARNING_RATE = true;
                 TRG_ERR = 1e-6f;
                 TEACH_MAX_ITERS = 6000;
-                TEACH_TARRY_NOT_CONVERGING = 2;
-                DIVERGENCE_PRESUMED = TEACH_MAX_ITERS / 2;
+                DIVERGENCE_PRESUMED = Math.min(Math.max(400, TEACH_MAX_ITERS / 2), 1000);
                 RANDOM_SEARCH_ITERS = 1000;
 
                 D = new Dataset()

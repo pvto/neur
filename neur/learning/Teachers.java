@@ -107,7 +107,7 @@ public class Teachers {
 
         for (; r.totalIterations < p.TEACH_MAX_ITERS; r.totalIterations++)
         {
-            if (r.bestItem != null && r.bestItem.testsetCorrect == p.D.TEST.set.size() && sdIncreasing >= p.TEACH_TARRY_NOT_CONVERGING)
+            if (r.lastUpdateIteration + p.DIVERGENCE_PRESUMED < r.totalIterations)
             {
                 break;
             }
@@ -124,7 +124,8 @@ public class Teachers {
             item.finish(nnw);
             if (r.bestItem == item)
             {
-                log.log("ok=%d error=%.5f lrate=%.5f it=%d", r.bestItem.testsetCorrect, Arrf.avg(item.error), k, r.totalIterations);
+                r.lastUpdateIteration = r.totalIterations;
+                log.log("ok=%d error=%.5f lrate=%.5f it=%d", r.bestItem.testsetCorrect, tres.variance, k, r.totalIterations);
             }
             if (p.DYNAMIC_LEARNING_RATE)
             {
@@ -146,11 +147,7 @@ public class Teachers {
             else
             if (tres.variance >= sdPrev)
             {
-                if (++sdIncreasing > p.DIVERGENCE_PRESUMED)
-                {
-                    log.log("diverging...");
-                    break;
-                }
+                sdIncreasing++;
             }
             else
             {

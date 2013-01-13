@@ -27,7 +27,6 @@ public class LearnParams<T extends NeuralNetwork, U extends LearningAlgorithm>
     public TrainMode MODE;
     public int RANDOM_SEARCH_ITERS = 100;
     public int TEACH_MAX_ITERS = 1000;
-    public int TEACH_TARRY_NOT_CONVERGING = 1;
     public boolean DYNAMIC_LEARNING_RATE = true;
     public float TRG_ERR = 0.01f;
     public int DIVERGENCE_PRESUMED = 1000;
@@ -46,7 +45,6 @@ public class LearnParams<T extends NeuralNetwork, U extends LearningAlgorithm>
         p.MODE = MODE;
         p.RANDOM_SEARCH_ITERS = RANDOM_SEARCH_ITERS;
         p.TEACH_MAX_ITERS = TEACH_MAX_ITERS;
-        p.TEACH_TARRY_NOT_CONVERGING = TEACH_TARRY_NOT_CONVERGING;
         p.DYNAMIC_LEARNING_RATE = DYNAMIC_LEARNING_RATE;
         p.TRG_ERR = TRG_ERR;
         p.DIVERGENCE_PRESUMED = DIVERGENCE_PRESUMED;
