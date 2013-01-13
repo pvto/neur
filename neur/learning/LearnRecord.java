@@ -68,16 +68,16 @@ public class LearnRecord<T extends NeuralNetwork> implements Serializable {
     public static class Item<T extends NeuralNetwork>
     {
         private LearnRecord<T> L;
-        private Item(LearnRecord<T> L){ this.L = L; }
+        private Item(LearnRecord<T> L)
+        { 
+            this.L = L;
+            if (L.timestamp == 0)
+                L.timestamp = timestamp;
+        }
         public long 
                 timestamp = System.currentTimeMillis(),
                 searchDuration
                 ;
-        {
-            if (L.timestamp == 0)
-                L.timestamp = timestamp;
-        }
-        public int epochCount = 0;
         public Trainres trainres;
         /** fitness is calculated by an evaluator of the fitness of this result */
         public float fitness;
@@ -90,6 +90,14 @@ public class LearnRecord<T extends NeuralNetwork> implements Serializable {
 
         private static Fast1OfNClassifier clf = new Fast1OfNClassifier();
         
+        public void clear()
+        {
+            testsetCorrect = 0;
+            trainsetCorrect = 0;
+            bestIteration = 0;
+            fitness = 0f;
+            error = null;
+        }
         public void finish(T nnw)
         {
             

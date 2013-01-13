@@ -46,6 +46,7 @@ public class Teachers {
                 return;
             }
         }
+        r.items.remove(r.items.size() - 1);
         intensification(p, r, log);
         r.aggregateResults();
         logSuccess(log, r.bestItem.trainsetCorrect, r.bestItem.testsetCorrect, p.D.TRAIN, p.D.TEST);        
@@ -119,9 +120,11 @@ public class Teachers {
                 k = learRok * 0.8f;
                 continue;
             }
+            item.clear();
             item.finish(nnw);
-            if (item.testsetCorrect > r.bestItem.testsetCorrect 
-                    || item.testsetCorrect == r.bestItem.testsetCorrect && Arrf.avg(item.error) < Arrf.avg(r.bestItem.error))
+            if (r.bestItem == null
+                    || item.testsetCorrect > r.bestItem.testsetCorrect 
+                    || item.testsetCorrect == r.bestItem.testsetCorrect && Arrf.sum(item.error) < Arrf.sum(r.bestItem.error))
             {
                 r.bestItem = item;
                 r.best = nnw.copy();
@@ -164,7 +167,6 @@ public class Teachers {
             }
             sdPrev = tres.variance;
         }
-        r.aggregateResults();
         log.log("done, %d ms, %d lrn-epochs", r.duration, r.totalIterations);
         
         if (r.best == null)

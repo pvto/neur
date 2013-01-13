@@ -116,7 +116,7 @@ public class TabooBoxSearch {
             maytaboo.error = r.variance;
         }
         else
-        {   // taboo box found using gradient learning - insert the bos into taboo space
+        {   // taboo box found using gradient learning - insert the box into taboo space
             maytaboo.space2 = flatten(better.weights);
             maytaboo.error = r.variance;
         }
