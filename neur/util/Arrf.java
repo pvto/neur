@@ -265,6 +265,13 @@ public final class Arrf {
         return r;
     }
     public static float                     avg(float[] data) {     return sum(data) / Math.max((float)data.length, 1f); }
+    public static float[]                   abs(float[] data)
+    {
+        float[] r = new float[data.length];
+        for (int i = 0; i < data.length; i++)
+            r[i] = Math.abs(data[i]);
+        return r;
+    }
     public static <T> boolean               contains(T[] data, T val)
     {
         for(T t : data)

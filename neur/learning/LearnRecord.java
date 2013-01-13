@@ -131,10 +131,11 @@ public class LearnRecord<T extends NeuralNetwork> implements Serializable {
             Item best = L.bestItem;
             if (best == null
                     ||  testsetCorrect > best.testsetCorrect
-                    ||  (testsetCorrect == best.testsetCorrect && sum(error) < sum(best.error))
+                    ||  (testsetCorrect == best.testsetCorrect && sum(abs(error)) < sum(abs(best.error)))
                     )
             {
                 L.bestItem = this;
+                L.best = nnw.copy();
             }
         }
     }

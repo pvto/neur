@@ -46,7 +46,8 @@ public class Teachers {
                 return;
             }
         }
-        r.items.remove(r.items.size() - 1);
+        if (r.items.size() > 0)
+            r.items.remove(r.items.size() - 1);
         intensification(p, r, log);
         r.aggregateResults();
         logSuccess(log, r.bestItem.trainsetCorrect, r.bestItem.testsetCorrect, p.D.TRAIN, p.D.TEST);        
@@ -104,13 +105,13 @@ public class Teachers {
         float learRok= 0.05f,
                 k = p.LEARNING_RATE_COEF;
 
-        LearnRecord.Item item = r.addItem();
         for (; r.totalIterations < p.TEACH_MAX_ITERS; r.totalIterations++)
         {
             if (r.bestItem != null && r.bestItem.testsetCorrect == p.D.TEST.set.size() && sdIncreasing >= p.TEACH_TARRY_NOT_CONVERGING)
             {
                 break;
             }
+            LearnRecord.Item item = r.createItem();
             Trainres tres = p.D.TRAIN.trainEpoch(nnw, p.L, p.MODE, new Object[]{k});
             
             if (Float.isNaN(tres.variance))
@@ -120,14 +121,9 @@ public class Teachers {
                 k = learRok * 0.8f;
                 continue;
             }
-            item.clear();
             item.finish(nnw);
-            if (r.bestItem == null
-                    || item.testsetCorrect > r.bestItem.testsetCorrect 
-                    || item.testsetCorrect == r.bestItem.testsetCorrect && Arrf.sum(item.error) < Arrf.sum(r.bestItem.error))
+            if (r.bestItem == item)
             {
-                r.bestItem = item;
-                r.best = nnw.copy();
                 log.log("ok=%d error=%.5f lrate=%.5f it=%d", r.bestItem.testsetCorrect, Arrf.avg(item.error), k, r.totalIterations);
             }
             if (p.DYNAMIC_LEARNING_RATE)
@@ -174,7 +170,7 @@ public class Teachers {
             log.log("no result - try again");
             return;
         }
-
+        r.items.add(r.bestItem);
     }
     
     
