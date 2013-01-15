@@ -29,10 +29,6 @@ public class Dataset implements Serializable {
     public volatile BitSet istest;
 //    public volatile TrainingSet ALL;
  
-    public int 
-            RANDOM_PARTITION_MAX_DISCARD = 100,
-            SET_SIZE_TO_PARAM_CLASS_COUNT_MIN_RATIO = 4
-            ;
     
     
     private SystematicSlicing sysl;
@@ -59,9 +55,22 @@ public class Dataset implements Serializable {
     }
 
 
+    public Dataset copy()
+    {
+        Dataset D = new Dataset();
+        D.DATA_GEN = DATA_GEN;
+        D.DATASET = DATASET;
+        D.SAMPLE = SAMPLE;
+        D.data = data;
+        return D;
+    }
     
-    
-    
+
+//    public int 
+//            RANDOM_PARTITION_MAX_DISCARD = 100,
+//            SET_SIZE_TO_PARAM_CLASS_COUNT_MIN_RATIO = 4
+//            ;
+//
 //    /** this gives an estimate for the nearness of the distribution of given test set and the data in this dataset:
 //    *  1) with discrete parameters p of T, the class distribution in T.TEST[p] is not too far from that of T.ALL[p]
 //    *  2) with continuous parameters p of T, the mean of T.TEST[p] is not too far from that of T.ALL[p] 

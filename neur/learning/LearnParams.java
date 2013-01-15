@@ -21,6 +21,9 @@ public class LearnParams<T extends NeuralNetwork, U extends LearningAlgorithm>
     public float[] NNW_AFUNC_PARAMS = { 1f };
     public T nnw;
     public Dataset D;
+    public int TESTSET_SIZE = 1;
+    /** how many training sets to create from the dataset; set to 0 (zero) for the number of items in the dataset*/
+    public int NUMBER_OF_TRAINING_SETS = 0;
     public Classifier CF;    
     public U L;
     public float LEARNING_RATE_COEF = 0.5f;    
@@ -38,7 +41,9 @@ public class LearnParams<T extends NeuralNetwork, U extends LearningAlgorithm>
         p.NNW_AFUNC = NNW_AFUNC;
         p.NNW_AFUNC_PARAMS = Arrays.copyOf(NNW_AFUNC_PARAMS, NNW_AFUNC_PARAMS.length);
         p.nnw = nnw==null?null:(T)nnw.copy();
-        p.D = D;
+        p.D = D.copy();
+        p.TESTSET_SIZE = TESTSET_SIZE;
+        p.NUMBER_OF_TRAINING_SETS = NUMBER_OF_TRAINING_SETS;
         p.CF = CF;
         p.L = L;
         p.LEARNING_RATE_COEF = LEARNING_RATE_COEF;
