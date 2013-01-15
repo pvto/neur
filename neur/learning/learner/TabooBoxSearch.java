@@ -35,6 +35,11 @@ public class TabooBoxSearch {
     /** the size of margin (margin as in layout) added to a taboo box - should lie within range (-0.5,0.5) for 
      * MLPs (within the range of connection weight values of newly created networks)  */
     public float THRESHOLD = 0.1f / 2.0f;
+    /** while creating a box within the solution space, maximum number of iterations of gradient learning */
+    public int MAX_GRAD_ITERS = 4;
+    /** While creating a box within the solution space, the learning rate of the gradient learning method that is used.
+     * Too big a learning coefficient will lead to locking into local minima. */
+    public float gradientLearningRate = 0.1f;
     
     /** the best solution so far */
     public MLP best = null;
@@ -103,16 +108,16 @@ public class TabooBoxSearch {
             taboos.add(maytaboo);
         
         MLP better = n.copy();
-        int maxGradIters = (int)(Math.random() * 4);
+        int maxGradIters = (int)(Math.random() * MAX_GRAD_ITERS);
         for (int i = 0; i < maxGradIters; i++)
         {
-            teach.trainEpoch(better, ebp, TrainMode.SUPERVISED_ONLINE_MODE, new Object[]{0.1f});    // too big a learning coefficient will lead to locking into local minima
+            teach.trainEpoch(better, ebp, TrainMode.SUPERVISED_ONLINE_MODE, new Object[]{gradientLearningRate});
         }
-        Trainres r = valid.trainEpoch(better, ebp, TrainMode.SUPERVISED_NO_TRAINING, new Object[]{0.1f});
+        Trainres r = valid.trainEpoch(better, ebp, TrainMode.SUPERVISED_NO_TRAINING, new Object[]{gradientLearningRate});
         if (Float.isNaN(r.variance))
         {   // suggested nw diverged after gradient learning - insert only a point into taboo space
             maytaboo.space2 = maytaboo.space1;
-            r = valid.trainEpoch(n, ebp, TrainMode.SUPERVISED_NO_TRAINING, new Object[]{0.1f});
+            r = valid.trainEpoch(n, ebp, TrainMode.SUPERVISED_NO_TRAINING, new Object[]{gradientLearningRate});
             maytaboo.error = r.variance;
         }
         else
