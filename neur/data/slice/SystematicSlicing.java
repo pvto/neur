@@ -5,9 +5,9 @@ import java.util.BitSet;
 import neur.data.TrainingSet;
  
 /** Creates a slicing of a data set into a training set (TRAIN) and a test set (TEST) so that upon two sequential calls
- * the test set differs by one entry every time.
+ * the created test set differs by one entry from the test set that was created earlier.
  *
- * If test set size is more than one (which is discouraged), test set items are always neighboring item in the original
+ * If test set size is more than one (which is discouraged), test set items are always neighboring items in the original
  * data set.
  * 
  * @author Paavo Toivanen
