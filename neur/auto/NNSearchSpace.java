@@ -15,7 +15,8 @@ public abstract class NNSearchSpace extends SearchSpace {
     public static enum Dim
     {
         HIDDEN_LR_SIZE,
-        ACTIVATION_FUNC
+        ACTIVATION_FUNC,
+        STOCHASTIC_SEARCH_SIZE
         ;
     }
 }

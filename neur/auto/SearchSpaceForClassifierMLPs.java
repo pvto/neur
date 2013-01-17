@@ -14,7 +14,8 @@ import neur.util.sdim.SearchDimension;
 public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
 
     public final SearchDimension 
-            hiddenLayerSize
+            hiddenLayerSize,
+            stochasticSearchSize
             ;
     public final Parameterised
             activationFunction
@@ -25,7 +26,11 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
     {
         simpleDimensions = new SearchDimension[]
         {
-            hiddenLayerSize = SearchDimension.create.discrete(1, D.data.length, 1).setName(Dim.HIDDEN_LR_SIZE),
+            hiddenLayerSize = SearchDimension.create.discrete(1, D.data.length, 1)
+                .setName(Dim.HIDDEN_LR_SIZE),
+            
+            stochasticSearchSize = SearchDimension.create.dispersed(1, 100, 1000)
+                .setName(Dim.STOCHASTIC_SEARCH_SIZE)
         };
         
         parameterisedDimensions = new Parameterised[]
@@ -48,20 +53,25 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
     @Override
     public LearnParams resolveTopologyFromFlattenedIndex(LearnParams templ, int offset)
     {
+        int range = offset;
         LearnParams ret = templ.copy();
         int a = super.linearEstimateForSize(activationFunction);
-        int h = offset / a;
+        int s = super.linearEstimateForSize(stochasticSearchSize);
+        int h = range / (a * s);
         ret.NNW_DIMS[1] = h + 1;
-        // TODO: combine classKeyForIndex and classValueForIndex
-        BigDecimal[] keyval = super.indexedClassKey_value(activationFunction, offset % a);
+        
+        range %= (a * s);
+        BigDecimal[] keyval = super.indexedClassKey_value(activationFunction, range / s);
         ret.NNW_AFUNC = keyval[0].intValue();
         ret.NNW_AFUNC_PARAMS = new float[]{ keyval[1].floatValue()};
+        ret.RANDOM_SEARCH_ITERS = stochasticSearchSize.getDiscretePoints().get(range % s).intValue();
         return ret;
     }
     
     public boolean equal(LearnParams a, LearnParams b)
     {
         if (Math.abs( a.NNW_DIMS[1] - b.NNW_DIMS[1]) < 1
+                && a.RANDOM_SEARCH_ITERS == b.RANDOM_SEARCH_ITERS
                 && a.NNW_AFUNC == b.NNW_AFUNC && a.NNW_AFUNC_PARAMS[0] == b.NNW_AFUNC_PARAMS[0])
             return true;
         return true;
