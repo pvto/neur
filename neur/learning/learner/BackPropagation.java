@@ -2,11 +2,17 @@ package neur.learning.learner;
 
 import neur.MLP;
 import neur.Neuron;
+import neur.learning.LearningAlgorithm;
 import neur.learning.SupervisedLearner;
 
 
 public class BackPropagation implements SupervisedLearner<MLP> {
 
+    @Override
+    public LearningAlgorithm<MLP> copy()
+    {   // stateless
+        return this;
+    }
     /**
      * @param params {[0] = (Float)learningRateCoef, }
      */

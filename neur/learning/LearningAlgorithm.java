@@ -17,4 +17,6 @@ public interface LearningAlgorithm<T extends NeuralNetwork> {
     void finishEpoch(T n, Object[] params);
     
     void clear();
+    
+    LearningAlgorithm<T> copy();
 }

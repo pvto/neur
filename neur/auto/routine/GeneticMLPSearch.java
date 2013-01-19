@@ -42,6 +42,9 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
         int dim = Math.min(a.p.NNW_DIMS[1], b.p.NNW_DIMS[1]);
         int dim2 = Math.max(a.p.NNW_DIMS[1], b.p.NNW_DIMS[1]);
         eve.p.NNW_DIMS[1] = dim + (int) ((dim2 - dim) * Math.random());
+        eve.p.L = a.p.L.copy();
+        eve.p.LEARNING_RATE_COEF = a.p.LEARNING_RATE_COEF;
+        eve.p.MODE = a.p.MODE;
         // pick activation function by random with a small probability
         if (Math.random() < 0.1)
         {   
@@ -56,6 +59,9 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
         {
             eve.p.NNW_AFUNC = b.p.NNW_AFUNC;
             eve.p.NNW_AFUNC_PARAMS = b.p.NNW_AFUNC_PARAMS;
+            eve.p.L = b.p.L.copy();
+            eve.p.LEARNING_RATE_COEF = b.p.LEARNING_RATE_COEF;
+            eve.p.MODE = b.p.MODE;
         }
         return eve;
     }

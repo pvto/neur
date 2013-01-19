@@ -16,7 +16,8 @@ public abstract class NNSearchSpace extends SearchSpace {
     {
         HIDDEN_LR_SIZE,
         ACTIVATION_FUNC,
-        STOCHASTIC_SEARCH_SIZE
+        STOCHASTIC_SEARCH_SIZE,
+        LEARNING_ALGORITHM
         ;
     }
 }

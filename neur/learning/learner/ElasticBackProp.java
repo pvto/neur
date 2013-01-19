@@ -3,6 +3,7 @@ package neur.learning.learner;
 
 import neur.MLP;
 import neur.Neuron;
+import neur.learning.LearningAlgorithm;
 
 /** An implementation of elastic error back propagation algorithm.
  * Adapted from the neuroph project, http://neuroph.svn.sourceforge.net/viewvc/neuroph/trunk/neuroph-2.7/Core/src/main/java/org/neuroph/nnet/learning/ResilientPropagation.java?revision=1338&content-type=text%2Fplain .
@@ -111,4 +112,15 @@ public final class ElasticBackProp extends BackPropagation {
     }
 
 
+    @Override
+    public LearningAlgorithm<MLP> copy()
+    {   
+        ElasticBackProp p = new ElasticBackProp();
+        p.decreaseFactor = this.decreaseFactor;
+        p.increaseFactor = this.increaseFactor;
+        p.initialDelta = this.initialDelta;
+        p.maxDelta = this.maxDelta;
+        p.minDelta = this.minDelta;
+        return p;
+    }
 }

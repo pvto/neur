@@ -4,7 +4,10 @@ package neur.auto;
 import java.math.BigDecimal;
 import neur.util.sdim.SearchDimension.Parameterised;
 import neur.data.Dataset;
+import neur.data.TrainMode;
 import neur.learning.LearnParams;
+import neur.learning.learner.BackPropagation;
+import neur.learning.learner.ElasticBackProp;
 import static neur.struct.ActivationFunction.Types.AFUNC_SIGMOID;
 import static neur.struct.ActivationFunction.Types.AFUNC_TANH;
 import neur.util.sdim.SearchDimension;
@@ -15,7 +18,8 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
 
     public final SearchDimension 
             hiddenLayerSize,
-            stochasticSearchSize
+            stochasticSearchSize,
+            learningAlgorithm
             ;
     public final Parameterised
             activationFunction
@@ -30,7 +34,10 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
                 .setName(Dim.HIDDEN_LR_SIZE),
             
             stochasticSearchSize = SearchDimension.create.dispersed(1, 100, 1000)
-                .setName(Dim.STOCHASTIC_SEARCH_SIZE)
+                .setName(Dim.STOCHASTIC_SEARCH_SIZE),
+            
+            learningAlgorithm = SearchDimension.create.dispersed(0, 1, 2, 3)
+                .setName(Dim.LEARNING_ALGORITHM)
         };
         
         parameterisedDimensions = new Parameterised[]
@@ -57,14 +64,41 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
         LearnParams ret = templ.copy();
         int a = super.linearEstimateForSize(activationFunction);
         int s = super.linearEstimateForSize(stochasticSearchSize);
-        int h = range / (a * s);
+        int la = super.linearEstimateForSize(learningAlgorithm);
+        int h = range / (a * s * la);
         ret.NNW_DIMS[1] = h + 1;
         
         range %= (a * s);
-        BigDecimal[] keyval = super.indexedClassKey_value(activationFunction, range / s);
+        BigDecimal[] keyval = super.indexedClassKey_value(activationFunction, range / (s * la));
         ret.NNW_AFUNC = keyval[0].intValue();
         ret.NNW_AFUNC_PARAMS = new float[]{ keyval[1].floatValue()};
-        ret.RANDOM_SEARCH_ITERS = stochasticSearchSize.getDiscretePoints().get(range % s).intValue();
+        range %= (s * la);
+        ret.RANDOM_SEARCH_ITERS = stochasticSearchSize.getDiscretePoints().get(range / la).intValue();
+        range %= la;
+        switch(range) {
+            case 0:
+                ret.L = new BackPropagation();
+                ret.LEARNING_RATE_COEF = 0.1f;
+                ret.DYNAMIC_LEARNING_RATE = false;
+                ret.MODE = TrainMode.SUPERVISED_BATCH_MODE;
+                break;
+            case 1:
+                ret.L = new BackPropagation();
+                ret.LEARNING_RATE_COEF = 0.1f;
+                ret.DYNAMIC_LEARNING_RATE = false;
+                ret.MODE = TrainMode.SUPERVISED_ONLINE_MODE;
+                break;
+            case 2:
+                ret.L = new BackPropagation();
+                ret.LEARNING_RATE_COEF = 0.1f;
+                ret.DYNAMIC_LEARNING_RATE = true;
+                ret.MODE = TrainMode.SUPERVISED_ONLINE_MODE;
+                break;
+            case 3:
+                ret.L = new ElasticBackProp();
+                ret.MODE = TrainMode.SUPERVISED_ONLINE_MODE;
+                break;
+        }
         return ret;
     }
     
@@ -72,6 +106,7 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
     {
         if (Math.abs( a.NNW_DIMS[1] - b.NNW_DIMS[1]) < 1
                 && a.RANDOM_SEARCH_ITERS == b.RANDOM_SEARCH_ITERS
+                && a.L.getClass() == b.L.getClass() && a.LEARNING_RATE_COEF == b.LEARNING_RATE_COEF && a.MODE == b.MODE 
                 && a.NNW_AFUNC == b.NNW_AFUNC && a.NNW_AFUNC_PARAMS[0] == b.NNW_AFUNC_PARAMS[0])
             return true;
         return true;
