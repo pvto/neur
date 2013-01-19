@@ -45,7 +45,7 @@ public class LearnParams<T extends NeuralNetwork, U extends LearningAlgorithm>
         p.TESTSET_SIZE = TESTSET_SIZE;
         p.NUMBER_OF_TRAINING_SETS = NUMBER_OF_TRAINING_SETS;
         p.CF = CF;
-        p.L = L;
+        p.L = (U)L.copy();
         p.LEARNING_RATE_COEF = LEARNING_RATE_COEF;
         p.MODE = MODE;
         p.RANDOM_SEARCH_ITERS = RANDOM_SEARCH_ITERS;

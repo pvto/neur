@@ -42,22 +42,31 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
         int dim = Math.min(a.p.NNW_DIMS[1], b.p.NNW_DIMS[1]);
         int dim2 = Math.max(a.p.NNW_DIMS[1], b.p.NNW_DIMS[1]);
         eve.p.NNW_DIMS[1] = dim + (int) ((dim2 - dim) * Math.random());
-        eve.p.L = a.p.L.copy();
-        eve.p.LEARNING_RATE_COEF = a.p.LEARNING_RATE_COEF;
-        eve.p.MODE = a.p.MODE;
-        // pick activation function by random with a small probability
+        // pick activation function and parameters for stochastic search by random with a small probability
         if (Math.random() < 0.1)
         {   
             Parameterised sdimAfunc = searchSpace.parameterisedForName(NNSearchSpace.Dim.ACTIVATION_FUNC);
-            int i = (int) (Math.random() * searchSpace.linearEstimateForSize(sdimAfunc));
-            BigDecimal[] func_steepness = searchSpace.indexedClassKey_value(sdimAfunc, i);
-            eve.p.NNW_AFUNC = func_steepness[0].intValue();
-            eve.p.NNW_AFUNC_PARAMS = new float[]{ func_steepness[1].floatValue() };
+            if (sdimAfunc != null)
+            {
+                int i = (int) (Math.random() * searchSpace.linearEstimateForSize(sdimAfunc));
+                BigDecimal[] func_steepness = searchSpace.indexedClassKey_value(sdimAfunc, i);
+                eve.p.NNW_AFUNC = func_steepness[0].intValue();
+                eve.p.NNW_AFUNC_PARAMS = new float[]{ func_steepness[1].floatValue() };
+            }
+            Parameterised stoc = searchSpace.parameterisedForName(NNSearchSpace.Dim.STOCHASTIC_SEARCH_SIZE);
+            if (stoc != null)
+            {
+                int i = (int) (Math.random() * searchSpace.linearEstimateForSize(stoc));
+                BigDecimal[] func_steepness = searchSpace.indexedClassKey_value(stoc, i);
+                eve.p.RANDOM_SEARCH_ITERS = func_steepness[0].intValue();
+            }
+
         }
         // else from either parent
         else if (Math.random() > 0.5)
         {
             eve.p.NNW_AFUNC = b.p.NNW_AFUNC;
+            eve.p.RANDOM_SEARCH_ITERS = a.p.RANDOM_SEARCH_ITERS;
             eve.p.NNW_AFUNC_PARAMS = b.p.NNW_AFUNC_PARAMS;
             eve.p.L = b.p.L.copy();
             eve.p.LEARNING_RATE_COEF = b.p.LEARNING_RATE_COEF;
