@@ -13,15 +13,22 @@ import java.util.List;
 public interface SearchDimension {
 
     
-    List<BigDecimal> getDiscretePoints();
+    List<BigDecimal>    getDiscretePoints();
     /** @return a list of ranges of form {min,max}. Ranges are assumed to be inclusive of their terminal points. */
-    List<BigDecimal[]> getContinuousRanges();
-    
-    BigDecimal getQuantiser();
-    SearchDimension putQuantiser(BigDecimal q);
+    List<BigDecimal[]>  getContinuousRanges();
+    BigDecimal          getQuantiser();
+    SearchDimension     putQuantiser(BigDecimal q);
     /** gives the given object as name to this dimension */
-    SearchDimension setName(Object o);
-    Object getName();
+    SearchDimension     setName(Object o);
+    Object              getName();
+    /** sets a strategy for generating new objects from the search dimension */
+    <T> SearchDimension setTargetGenerator(TargetGenerator<T> generator);
+    <T> TargetGenerator<T>  getTargetGenerator();
+    
+    public interface TargetGenerator<T>
+    {
+                        <T> T generate(int index);
+    }
     
     public static class Discrete implements SearchDimension
     {
@@ -33,9 +40,12 @@ public interface SearchDimension {
         @Override public SearchDimension    putQuantiser(BigDecimal q){ quantiser = q;  return this; }
         @Override public SearchDimension    setName(Object o) {         name = o;       return this; }
         @Override public Object             getName() {                 return name; }
+        @Override public SearchDimension    setTargetGenerator(TargetGenerator g) { tg = g;  return this; }
+        @Override public <T> TargetGenerator<T>  getTargetGenerator() {  return tg; }
         public BigDecimal quantiser = BigDecimal.ONE;
         List points = new ArrayList();
         Object name = (int) (Math.random()  *  Integer.MAX_VALUE);
+        TargetGenerator tg;
     }
     public static class Continuous extends Discrete
     {

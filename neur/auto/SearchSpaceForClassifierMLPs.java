@@ -6,11 +6,13 @@ import neur.util.sdim.SearchDimension.Parameterised;
 import neur.data.Dataset;
 import neur.data.TrainMode;
 import neur.learning.LearnParams;
+import neur.learning.LearningAlgorithm;
 import neur.learning.learner.BackPropagation;
 import neur.learning.learner.ElasticBackProp;
 import static neur.struct.ActivationFunction.Types.AFUNC_SIGMOID;
 import static neur.struct.ActivationFunction.Types.AFUNC_TANH;
 import neur.util.sdim.SearchDimension;
+import neur.util.sdim.SearchDimension.TargetGenerator;
 
 
 
@@ -38,6 +40,22 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
             
             learningAlgorithm = SearchDimension.create.dispersed(0, 1, 2, 3)
                 .setName(Dim.LEARNING_ALGORITHM)
+                .setTargetGenerator(new TargetGenerator() {
+                    @Override public Object generate(int index)
+                    {
+                        switch(index) {
+                        case 0: 
+                            return new Object[]{ new BackPropagation(), 0.1f, false, TrainMode.SUPERVISED_BATCH_MODE };
+                        case 1:
+                            return new Object[]{ new BackPropagation(), 0.1f, false, TrainMode.SUPERVISED_ONLINE_MODE };
+                        case 2:
+                            return new Object[]{ new BackPropagation(), 0.1f, true, TrainMode.SUPERVISED_ONLINE_MODE };
+                        case 3:
+                            return new Object[]{ new ElasticBackProp(), 0.1f, false, TrainMode.SUPERVISED_ONLINE_MODE };
+                        }
+                        return null;
+                    }
+                })
         };
         
         parameterisedDimensions = new Parameterised[]
@@ -75,30 +93,11 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
         range %= (s * la);
         ret.RANDOM_SEARCH_ITERS = stochasticSearchSize.getDiscretePoints().get(range / la).intValue();
         range %= la;
-        switch(range) {
-            case 0:
-                ret.L = new BackPropagation();
-                ret.LEARNING_RATE_COEF = 0.1f;
-                ret.DYNAMIC_LEARNING_RATE = false;
-                ret.MODE = TrainMode.SUPERVISED_BATCH_MODE;
-                break;
-            case 1:
-                ret.L = new BackPropagation();
-                ret.LEARNING_RATE_COEF = 0.1f;
-                ret.DYNAMIC_LEARNING_RATE = false;
-                ret.MODE = TrainMode.SUPERVISED_ONLINE_MODE;
-                break;
-            case 2:
-                ret.L = new BackPropagation();
-                ret.LEARNING_RATE_COEF = 0.1f;
-                ret.DYNAMIC_LEARNING_RATE = true;
-                ret.MODE = TrainMode.SUPERVISED_ONLINE_MODE;
-                break;
-            case 3:
-                ret.L = new ElasticBackProp();
-                ret.MODE = TrainMode.SUPERVISED_ONLINE_MODE;
-                break;
-        }
+        NNSearchSpace.LearningAlgorithmParameters o = learningAlgorithm.getTargetGenerator().generate(range);
+        ret.L = o.L;
+        ret.LEARNING_RATE_COEF = o.LEARNING_RATE_COEF;
+        ret.DYNAMIC_LEARNING_RATE = o.DYNAMIC_LEARNING_RATE;
+        ret.MODE = o.MODE;
         return ret;
     }
     
