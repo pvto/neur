@@ -9,8 +9,7 @@ import neur.learning.LearnParams;
 import neur.learning.LearningAlgorithm;
 import neur.learning.learner.BackPropagation;
 import neur.learning.learner.ElasticBackProp;
-import static neur.struct.ActivationFunction.Types.AFUNC_SIGMOID;
-import static neur.struct.ActivationFunction.Types.AFUNC_TANH;
+import static neur.struct.ActivationFunction.Types.*;
 import neur.util.sdim.SearchDimension;
 import neur.util.sdim.SearchDimension.TargetGenerator;
 
@@ -61,15 +60,9 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
         parameterisedDimensions = new Parameterised[]
         { 
             activationFunction = SearchDimension.create.parameterised( new Object[]{
-                AFUNC_TANH, 
-                    SearchDimension.create.dispersed(1.0),
-                AFUNC_SIGMOID, 
-                    SearchDimension.create.dispersed(
-                        0.1, 0.2, 0.4, 0.8,
-                        1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 
-                        10.0, 20.0, 40.0, 80.0, 
-                        100.0, 200.0, 400.0, 800.0
-                    ),
+                AFUNC_TANH,     SearchDimension.create.dispersed(1.0),
+                AFUNC_SOFTSIGN, SearchDimension.create.dispersed(1.0),
+                AFUNC_SIGMOID,  SearchDimension.create.dispersed(0.4, 1.0, 3.0, 9.0),
             })
                 .attachName(Dim.ACTIVATION_FUNC),
         };

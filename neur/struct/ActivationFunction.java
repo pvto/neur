@@ -11,6 +11,7 @@ public interface ActivationFunction {
         public static final int AFUNC_SIGMOID = 1;
         public static final int AFUNC_SIN = 2;
         public static final int AFUNC_TANH = 3;
+        public static final int AFUNC_SOFTSIGN = 4;
         
         public static String asString(int func)
         {
@@ -32,6 +33,9 @@ public interface ActivationFunction {
                 break;
             case AFUNC_TANH:
                 ACT = new TanhFunc();
+                break;
+            case AFUNC_SOFTSIGN:
+                ACT = new SoftsignFunc();
                 break;
             }
             // copy any parameters to the target function
