@@ -1,8 +1,8 @@
 package neur.struct;
 
-import neur.struct.ActivationFunction.ActivationFunction0;
+import neur.struct.ActivationFunction.ActivationFunctionN;
 
-public class SoftsignFunc extends ActivationFunction0 {
+public class SoftsignFunc extends ActivationFunctionN {
 
 
     @Override

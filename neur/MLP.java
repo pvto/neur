@@ -123,12 +123,15 @@ public class MLP implements NeuralNetwork, Serializable {
         // add weights for connections from existing perceptrons in previous layer to this unit
         if (layer > 0)
         {
+            // Glorot & Bengio [2010]
+            float glorot = (float) (Math.sqrt(6.0) 
+                    / Math.sqrt(layers[layer - 1].length + layers[layer].length)) * 2f;
             float[][] LL = weights[layer - 1];
             float[] L = new float[layers[layer - 1].length];
             LL[unit-1] = L;
             for (int i = 0; i < L.length; i++)
             {
-                L[i] = (float) Math.random() - 0.5f;
+                L[i] = (float) (Math.random() - 0.5f) * glorot;
             }
         }
 //        // add weights for connections from this layer to existing perceptrons in next layer

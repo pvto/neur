@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import neur.MLP;
 import neur.auto.NNSearchSpace;
 import neur.auto.TopologyFinding;
@@ -15,7 +17,9 @@ import neur.data.TrainMode;
 import neur.learning.LearnParams;
 import neur.learning.LearnRecord;
 import neur.learning.LearningAlgorithm;
+import neur.learning.Teachers;
 import static neur.util.Arrf.concatite;
+import neur.util.Log;
 import neur.util.sdim.SearchDimension;
 import neur.util.sdim.SearchDimension.Parameterised;
 
@@ -30,9 +34,12 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
     public double PROB_GENERATE_NEW_INDIVIDUAL = 0.5;
     public double PROB_RANDOM_MUTATION = 0.1;
     
+    public boolean REMOTING = false; // TODO: implement remote server+client
+    private Executor exepool = Executors.newCachedThreadPool();
+    
     private static class Specimen {
         LearnParams p;
-        LearnRecord r;
+        LearnRecord lrec;
     }
     /** 
      * @return a cross between the two given individuals, where continuous properties like 
@@ -44,6 +51,7 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
     {
         Specimen eve = new Specimen();
         eve.p = a.p.copy();
+        eve.lrec = new LearnRecord(eve.p);
         // pick hidden layer dimension
         int dim = Math.min(a.p.NNW_DIMS[1], b.p.NNW_DIMS[1]);
         int dim2 = Math.max(a.p.NNW_DIMS[1], b.p.NNW_DIMS[1]);
@@ -53,7 +61,7 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
         if (Math.random() > 0.5)
         {
             eve.p.NNW_AFUNC = b.p.NNW_AFUNC;
-            eve.p.RANDOM_SEARCH_ITERS = a.p.RANDOM_SEARCH_ITERS;
+            eve.p.STOCHASTIC_SEARCH_ITERS = a.p.STOCHASTIC_SEARCH_ITERS;
             eve.p.NNW_AFUNC_PARAMS = b.p.NNW_AFUNC_PARAMS;
             eve.p.L = b.p.L.copy();
             eve.p.LEARNING_RATE_COEF = b.p.LEARNING_RATE_COEF;
@@ -74,17 +82,23 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
             {
                 int i = (int) (Math.random() * searchSpace.linearEstimateForSize(stoc));
                 BigDecimal stocCount = searchSpace.getIndexedPoint(stoc, i);
-                eve.p.RANDOM_SEARCH_ITERS = stocCount.intValue();
+                eve.p.STOCHASTIC_SEARCH_ITERS = stocCount.intValue();
             }
             SearchDimension lalg = searchSpace.dimensionForName(NNSearchSpace.Dim.LEARNING_ALGORITHM);
             if (lalg != null)
             {
-                int i = (int) (Math.random() * searchSpace.linearEstimateForSize(lalg));
-                NNSearchSpace.LearningAlgorithmParameters o = lalg.getTargetGenerator().generate(i);
-                eve.p.L = o.L;
-                eve.p.LEARNING_RATE_COEF = o.LEARNING_RATE_COEF;
-                eve.p.DYNAMIC_LEARNING_RATE = o.DYNAMIC_LEARNING_RATE;
-                eve.p.MODE = o.MODE;
+                int ind = (int) (Math.random() * searchSpace.linearEstimateForSize(lalg));
+                Object[] oo = lalg.getTargetGenerator().generate(ind);
+                eve.p.L = (LearningAlgorithm) oo[0];//o.L;
+                eve.p.LEARNING_RATE_COEF = (float) oo[1]; //o.LEARNING_RATE_COEF;
+                eve.p.DYNAMIC_LEARNING_RATE = (boolean) oo[2]; //o.DYNAMIC_LEARNING_RATE;
+                eve.p.MODE = (TrainMode) oo[3]; //o.MODE;
+
+//                NNSearchSpace.LearningAlgorithmParameters o = lalg.getTargetGenerator().generate(i);
+//                eve.p.L = o.L;
+//                eve.p.LEARNING_RATE_COEF = o.LEARNING_RATE_COEF;
+//                eve.p.DYNAMIC_LEARNING_RATE = o.DYNAMIC_LEARNING_RATE;
+//                eve.p.MODE = o.MODE;
             }
         }
         return eve;
@@ -108,7 +122,7 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
             @Override
             public void run()
             {
-                RelativeMLPFitnessComparator c = new RelativeMLPFitnessComparator();
+                 RelativeMLPFitnessComparator c = new RelativeMLPFitnessComparator();
 
                 List<Specimen> population = new ArrayList<>();
                 List<Specimen> deceased = new ArrayList<>();
@@ -117,12 +131,15 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
                 while(i < maxOperations)
                 {
                     Specimen eve = null;
-                    if (population.size() < 2 || Math.random() > 0.5)
+                    if (population.size() < 2 || Math.random() > 0.6)
                     {
                         // create a new random individual
                         int ind = (int)(Math.random() * linsize);
                         eve = new Specimen();
                         eve.p = searchSpace.resolveTopologyFromFlattenedIndex(templParams, ind);
+                        // treat hidden layer specifically. get it from a square distribution, favoring small hidden layer sizes
+                        eve.p.NNW_DIMS[1] = Math.max(1, (int)(eve.p.NNW_DIMS[1] * Math.random()));
+                        eve.lrec = new LearnRecord(eve.p);
                         // do not add exact replicas...
                         for(Specimen lil : concatite(deceased, population))
                             if (eve == lil || searchSpace.equal(eve.p, lil.p))
@@ -130,10 +147,11 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
                     }
                     else
                     {
-                        // cross two individuals
+                        // cross two individuals, slightly favoring fittest
+                        double bias = Math.pow(Math.random(), 3.0);
                         Specimen
                                 a = population.get((int)(Math.random() * population.size())),
-                                b = population.get((int)(Math.random() * population.size()))
+                                b = population.get(population.size() - 1 - (int)(bias * population.size()))
                                 ;
                         // sanity check, do not cross close relatives
                         if (a == b || searchSpace.equal(a.p, b.p))
@@ -143,6 +161,7 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
                     }
                     evaluateFitness(eve, c);
                     population.add(eve);
+                    ret.countDown(eve.lrec);
                     // keep the population relatively small with some fit and some random individuals
                     if (++i % (GENEPOOL_SIZE * 2) == GENEPOOL_SIZE * 2 - 1)
                     {
@@ -169,20 +188,29 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
         @Override
         public int compare(Specimen a, Specimen b)
         {
-            if (a.r.averageFitness > b.r.averageFitness)
+            if (a.lrec.averageFitness > b.lrec.averageFitness)
                 return 1;
-            if (a.r.averageFitness < b.r.averageFitness)
+            if (a.lrec.averageFitness < b.lrec.averageFitness)
                 return -1;
             return 0;
         }
 
     };
-        
+
+    static Log log = Log.create.chained(Log.cout, Log.file.bind("gen-mlp-s.log"));
     private static void evaluateFitness(Specimen x, RelativeMLPFitnessComparator c)
     {
-        // TODO: learning!
-        x.r.aggregateResults();
-        c.putFitness(x.r);
+        log.log("evaluate fitness h%d L%s ", x.p.NNW_DIMS[1], x.p.L.getClass());
+        
+        while(x.p.getNumberOfPendingTrainingSets(x.lrec) > 0)
+        {
+            // TODO: this could be remote with forkjoin!            
+            x.p.nnw = new MLP(x.p);
+            x.p.D.initTrain_Test_Sets(x.p.TESTSET_SIZE, x.p.DATASET_SLICING);
+            new Teachers().tabooBoxAndIntensification(x.p, x.lrec, log);
+        }
+        x.lrec.aggregateResults();
+        c.putFitness(x.lrec);
     }
 
 }

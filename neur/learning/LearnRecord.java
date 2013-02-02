@@ -19,6 +19,8 @@ import static neur.util.Arrf.*;
  */
 public class LearnRecord<T extends NeuralNetwork> implements Serializable {
 
+    public LearnRecord(LearnParams params) { this.p = params; }
+    
     public LearnParams p;
     /** this tracks the best achieved network */
     public T best;
@@ -26,9 +28,6 @@ public class LearnRecord<T extends NeuralNetwork> implements Serializable {
     public List<Item> items = new ArrayList<Item>();
     public long timestamp = 0,
             duration = 0;
-    public int 
-            lastUpdateIteration = 0,
-            totalIterations = 0;
 
     public float
             averageSummedError = 0f,
@@ -76,7 +75,8 @@ public class LearnRecord<T extends NeuralNetwork> implements Serializable {
         }
         public long 
                 timestamp = System.currentTimeMillis(),
-                searchDuration
+                stochSearchDuration = 0,
+                searchDuration = 0
                 ;
         public Trainres trainres;
         /** fitness is calculated by an evaluator of the fitness of this result */
@@ -85,22 +85,25 @@ public class LearnRecord<T extends NeuralNetwork> implements Serializable {
         public int 
                 testsetCorrect = 0,
                 trainsetCorrect = 0,
-                bestIteration = 0
+                bestStochasticIteration = 0,
+                totalStochasticIterations = 0,
+                bestIteration = 0,
+                totalIterations = 0;
                 ;
 
         private static Fast1OfNClassifier clf = new Fast1OfNClassifier();
         
-        public void clear()
-        {
-            testsetCorrect = 0;
-            trainsetCorrect = 0;
-            bestIteration = 0;
-            fitness = 0f;
-            error = null;
-        }
+//        public void clear()
+//        {
+//            testsetCorrect = 0;
+//            trainsetCorrect = 0;
+//            bestIteration = 0;
+//            fitness = 0f;
+//            error = null;
+//        }
         public void finish(T nnw)
         {
-            
+            searchDuration = System.currentTimeMillis() - timestamp;
             int o = L.p.NNW_DIMS[L.p.NNW_DIMS.length - 1];  // output layer size
             float[][] out = new float[L.p.D.data.length][o];
             for (int k = 0; k < out.length; k++)
@@ -129,10 +132,8 @@ public class LearnRecord<T extends NeuralNetwork> implements Serializable {
             }
             
             Item best = L.bestItem;
-            if (best == null
-                    ||  testsetCorrect > best.testsetCorrect
-                    ||  (testsetCorrect == best.testsetCorrect && sum(abs(error)) < sum(abs(best.error)))
-                    )
+            fitness = (float)testsetCorrect + (1f / (1f + (float)trainsetCorrect));
+            if (best == null || fitness > best.fitness)
             {
                 L.bestItem = this;
                 L.best = nnw.copy();

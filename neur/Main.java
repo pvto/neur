@@ -72,22 +72,23 @@ public class Main {
                 NNW_DIMS = new int[]{tdata[0][0].length, 4, tdata[0][1].length};
 
                 L = new neur.learning.learner.
-                        //BackPropagation();
-                        ElasticBackProp();
-                LEARNING_RATE_COEF = 0.1f;
+                        BackPropagation();
+                        //ElasticBackProp();
+                LEARNING_RATE_COEF = 0.125f;
                 DYNAMIC_LEARNING_RATE = true;
-                TRG_ERR = 1e-6f;
+                TRG_ERR = 1e-3f;
                 TEACH_MAX_ITERS = 6000;
                 DIVERGENCE_PRESUMED = Math.min(Math.max(400, TEACH_MAX_ITERS / 2), 1000);
-                RANDOM_SEARCH_ITERS = 1000;
+                STOCHASTIC_SEARCH_ITERS = 0;
 
+                DATASET_SLICING = Dataset.Slicing.RandomDueClassification;
                 D = new Dataset()
                 {{
                         DATA_GEN = datagen;
                         DATASET = dataset;
                         SAMPLE = sample;
                         data = tdata;
-                        initTrain_Test_Sets(data.length * 1 / 10, Slicing.RandomDueClassification);
+                        initTrain_Test_Sets(data.length * 1 / 10, DATASET_SLICING);
                 }};
                 
                 CF = new Fast1OfNClassifier();
@@ -96,7 +97,7 @@ public class Main {
         for (int i = 0; i < max_runs; )
         {
             p.nnw = new MLP(p.NNW_DIMS, ActivationFunction.Types.create(p.NNW_AFUNC, p.NNW_AFUNC_PARAMS));
-            LearnRecord<MLP> r = new LearnRecord<MLP>(); r.p = p;
+            LearnRecord<MLP> r = new LearnRecord<MLP>(p);
 //            nnw.layers[0][0].netInput = 1f; // 0f disables bias neuron
 //            nnw.layers[1][0].netInput = 1f; // 0f disables bias neuron
             runTest(p, r);
@@ -111,7 +112,7 @@ public class Main {
         
     }
 
-    private static Log log = Log.log;
+    private static Log log = Log.cout;
     
     
     private static void runTest(LearnParams p, LearnRecord<MLP> r) throws IOException, SQLException
@@ -147,7 +148,7 @@ public class Main {
                 .a("learning_rate",r.p.LEARNING_RATE_COEF,"%.3f")
                 .a("sample",r.p.D.data.length, "data_gen", r.p.D.DATA_GEN)
                 .a("testset_size",r.p.D.TEST.set.size(),"vldset_size",r.p.D.TRAIN.set.size())
-                .a("rnd_search_iters",r.p.RANDOM_SEARCH_ITERS, "rnd_best_iter",0, "rnd_search_time",r.duration)
+                .a("rnd_search_iters",r.p.STOCHASTIC_SEARCH_ITERS, "rnd_best_iter",0, "rnd_search_time",r.duration)
                 .a("max_iters",r.p.TEACH_MAX_ITERS, "iters",0)
                 .a("targ_sd",r.averageSummedError,"%.5f")
                 .a("imprv_epochs",0,"testset_correct",r.bestItem.testsetCorrect,"vldset_correct",r.bestItem.trainsetCorrect)

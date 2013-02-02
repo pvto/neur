@@ -2,6 +2,7 @@
 package neur.auto;
 
 import java.util.Comparator;
+import java.util.Observable;
 import neur.NeuralNetwork;
 import neur.learning.LearnRecord;
 
@@ -9,7 +10,7 @@ import neur.learning.LearnRecord;
  *
  * @author Paavo Toivanen
  */
-public class TopologyFinding<T extends NeuralNetwork> {
+public class TopologyFinding<T extends NeuralNetwork> extends Observable {
 
     public static final int 
             SEARCH_NOT_STARTED     = 0,
@@ -61,6 +62,8 @@ public class TopologyFinding<T extends NeuralNetwork> {
                 if (records[slot].res.averageFitness >= rec.averageFitness)
                     return;
             }
+            super.setChanged(); // implement contract for observable
+            
             records[slot] = new Item(rec);
             if (newBest)
                 best = slot;
@@ -69,6 +72,8 @@ public class TopologyFinding<T extends NeuralNetwork> {
             sort();
         if (searchState == SEARCH_NOT_STARTED)
             searchState = SEARCH_STARTED;
+        
+        super.notifyObservers(rec); // implement contract for observable
     }
 
     private synchronized void sort()

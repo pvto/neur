@@ -22,7 +22,7 @@ public class MonteCarloSearch {
         T nnw = p.nnw;
         Item record = r.createItem();
         Item bestRec = null;
-        for(int i = 0; i < p.RANDOM_SEARCH_ITERS; i++)
+        for(int i = 0; i < p.STOCHASTIC_SEARCH_ITERS; i++)
         {
             nnw = nnw.newNetwork(p);
             if (p.L != null)

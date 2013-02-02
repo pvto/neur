@@ -45,13 +45,8 @@ public class TrainingSet implements Serializable {
         if (mode.isSupervised())
         {
             res.errorTerms = new float[nnw.outv().length];
-            res.variance = 0f;
+            res.mse = 0f;
         }
-//        if (mode == TrainMode.MIXED_BO_MODE)
-//        {
-//            if (Math.random() < 0.1) mode = TrainMode.BATCH_MODE;
-//            else mode = TrainMode.ONLINE_MODE;
-//        }
         for(float[][] d : set)
         {
             float[] outf = nnw.feedf(d[0]);
@@ -62,7 +57,7 @@ public class TrainingSet implements Serializable {
                 for(float e : errors)
                 {
                     res.errorTerms[i++] += e;
-                    res.variance += e * e;
+                    res.mse += e * e;
                 }
                 if (mode == TrainMode.SUPERVISED_ONLINE_MODE)
                 {
@@ -72,7 +67,9 @@ public class TrainingSet implements Serializable {
         }
         if (mode == TrainMode.SUPERVISED_BATCH_MODE)
         {
+            res.errorTerms = Arrf.div(res.errorTerms, 2);
             L.learn(nnw, res.errorTerms, params);
+            res.mse /= set.size();
         }
         L.finishEpoch(nnw, params);
         return res;

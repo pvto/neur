@@ -347,6 +347,14 @@ public final class Arrf {
         return size;
     }
     
+    public static float[]                   sqr(float[] data)
+    {
+        float[] r = new float[data.length];
+        for (int i = 0; i < r.length; i++) {
+            r[i] = data[i] * data[i];
+        }
+        return r;
+    }
     
     // --- data conversion and normalisation --- //
     

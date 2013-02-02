@@ -5,12 +5,11 @@ import java.util.ArrayList;
 import java.util.List;
 import neur.MLP;
 import neur.NeuralNetwork;
-import neur.data.TrainingSet;
 import neur.data.Trainres;
+import neur.learning.LearnRecord.Item;
 import neur.learning.learner.MonteCarloSearch;
 import neur.learning.learner.TabooBoxSearch;
 import neur.learning.learner.TabooBoxSearch.Taboo;
-import neur.util.Arrf;
 import neur.util.Log;
 
 public class Teachers {
@@ -20,37 +19,45 @@ public class Teachers {
             void monteCarloAndIntensification(LearnParams<T,U> p, LearnRecord r, Log log)
     {
         monteCarlo(p, r, log);
-        logSuccess(log, r.bestItem.trainsetCorrect, r.bestItem.testsetCorrect, p.D.TRAIN, p.D.TEST);
-        
-        if (r.bestItem.testsetCorrect == p.D.TEST.set.size() && r.bestItem.trainsetCorrect == p.D.TRAIN.set.size())
-        {
-            return;
-        }
-        intensification(p, r, log);
+        intensification(p, r, log, (T)r.best);  // erroneous
         r.aggregateResults();
-        logSuccess(log, r.bestItem.trainsetCorrect, r.bestItem.testsetCorrect, p.D.TRAIN, p.D.TEST);        
     }
     
     
     public <T extends NeuralNetwork, U extends LearningAlgorithm> 
             
-            void tabooBoxAndIntensification(LearnParams<MLP,U> p, LearnRecord r, Log log)
+            void tabooBoxAndIntensification(LearnParams<T,U> p, LearnRecord r, Log log)
     {
-        if (p.RANDOM_SEARCH_ITERS > 0)
+        LearnRecord.Item stochItem = null;
+        T nnw;
+        if (p.STOCHASTIC_SEARCH_ITERS > 0)
         {
-            tabooBox(p, r, log);
-            logSuccess(log, r.bestItem.trainsetCorrect, r.bestItem.testsetCorrect, p.D.TRAIN, p.D.TEST);
-
-            if (r.bestItem.testsetCorrect == p.D.TEST.set.size() && r.bestItem.trainsetCorrect == p.D.TRAIN.set.size())
+            stochItem = tabooBox(p, r, log);
+            r.items.remove(r.items.size() - 1);
+            nnw = (T)r.best;
+        }
+        else
+        {
+            nnw = p.nnw.copy();
+        }
+        if (!intensification(p, r, log, nnw) && stochItem != null)
+        {   // put stochastic result back...
+            r.items.add(stochItem);
+        }
+        else {
+            if (r.bestItem == stochItem)
             {
-                return;
+                r.items.remove(r.items.size() - 1);
+                r.items.add(stochItem);
             }
         }
-        if (r.items.size() > 0)
-            r.items.remove(r.items.size() - 1);
-        intensification(p, r, log);
-        r.aggregateResults();
-        logSuccess(log, r.bestItem.trainsetCorrect, r.bestItem.testsetCorrect, p.D.TRAIN, p.D.TEST);        
+        if (stochItem != null)
+        {
+            LearnRecord.Item item = (LearnRecord.Item) r.items.get(r.items.size() - 1);
+            item.totalStochasticIterations = stochItem.totalStochasticIterations;
+            item.bestStochasticIteration = stochItem.bestStochasticIteration;
+            item.stochSearchDuration = stochItem.searchDuration;
+        }
     }
     
     
@@ -63,58 +70,60 @@ public class Teachers {
         log.log("RND_SRC in "+r.bestItem.searchDuration+"ms");
     }
     
-    public <U extends LearningAlgorithm> 
+    public <T extends NeuralNetwork, U extends LearningAlgorithm> 
             
-            void tabooBox(LearnParams<MLP,U> p, LearnRecord r, Log log)
+            Item tabooBox(LearnParams<T,U> p, LearnRecord r, Log log)
     {
-        MLP nnw = p.nnw;
-        MLP best;
+        T nnw = p.nnw;
+        T best;
         TabooBoxSearch TS = new TabooBoxSearch();
         List<Taboo> taboos = new ArrayList<Taboo>();
         LearnRecord.Item item = r.addItem();
         long time = System.currentTimeMillis();
-        r.totalIterations += p.RANDOM_SEARCH_ITERS;
-        for(int i = 0; i < p.RANDOM_SEARCH_ITERS; i++)
+        for(int i = 0; i < p.STOCHASTIC_SEARCH_ITERS; i++)
         {
-            if (TS.learnEpoch(p.nnw, p.D.TEST, p.D.TRAIN, taboos))
+            item.totalStochasticIterations = i + 1;
+            if (TS.learnEpoch((MLP)p.nnw, p.D.TEST, p.D.TRAIN, taboos))
             {
-                r.lastUpdateIteration = i;
+                item.bestStochasticIteration = i;
             }
-//            System.out.println(i+" ok="+p.CF.correctCount(p.D.V, TS.best) + " var="+TS.leastError);
         }
         r.best = TS.best;
-        item.finish(r.best);
-        log.log(r.lastUpdateIteration+"("+p.RANDOM_SEARCH_ITERS+") ok="+r.bestItem.testsetCorrect + " var="+TS.leastError);
+        item.finish(TS.best);
         time = System.currentTimeMillis() - time;
         r.duration += time;
-        log.log("TABOO_SRC in "+time+"ms");
-        r.aggregateResults();
+        log.log("TABOO_SRC ok="+item.testsetCorrect +"  "+ time+"ms " + item.bestStochasticIteration+"("+p.STOCHASTIC_SEARCH_ITERS+") var="+TS.leastError);
+        return item;
     }
     
     
     public <T extends NeuralNetwork, U extends LearningAlgorithm>
             
-            void intensification(LearnParams<T,U> p, LearnRecord r, Log log)
+            boolean intensification(LearnParams<T,U> p, LearnRecord r, Log log, T nnw)
     {
         p.L.clear();        
-        T nnw = (r.best != null) ? (T)r.best.copy() : (T)p.nnw.copy();
         Trainres resBest = new Trainres();
-        resBest.variance = Float.MAX_VALUE;
+        resBest.mse = Float.MAX_VALUE;
         float sdPrev = Float.MAX_VALUE;
         int sdIncreasing = 0;
         float learRok= 0.05f,
                 k = p.LEARNING_RATE_COEF;
-
-        for (; r.totalIterations < p.TEACH_MAX_ITERS; r.totalIterations++)
+        int totalIterations = 0;
+        long start = System.currentTimeMillis();
+        LearnRecord.Item bestItem = null;
+        for (; totalIterations < p.TEACH_MAX_ITERS; totalIterations++)
         {
-            if (r.lastUpdateIteration + p.DIVERGENCE_PRESUMED < r.totalIterations)
+            if (bestItem != null && 
+                    (bestItem.bestIteration + p.DIVERGENCE_PRESUMED < totalIterations
+                    || (bestItem == null || bestItem.bestIteration == 0) && totalIterations > p.DIVERGENCE_PRESUMED / 4)
+                )
             {
                 break;
             }
             LearnRecord.Item item = r.createItem();
             Trainres tres = p.D.TRAIN.trainEpoch(nnw, p.L, p.MODE, new Object[]{k});
             
-            if (Float.isNaN(tres.variance))
+            if (Float.isNaN(tres.mse))
             {
                 if (r.best != null)
                     nnw = r.best.copy();
@@ -122,10 +131,11 @@ public class Teachers {
                 continue;
             }
             item.finish(nnw);
-            if (r.bestItem == item)
+            if (bestItem == null || item.fitness > bestItem.fitness)
             {
-                r.lastUpdateIteration = r.totalIterations;
-                log.log("ok=%d error=%.5f lrate=%.5f it=%d", r.bestItem.testsetCorrect, tres.variance, k, r.totalIterations);
+                bestItem = item;
+                item.bestIteration = totalIterations;
+                log.log("ok=%d error=%.5f lrate=%.5f it=%d", bestItem.testsetCorrect, tres.mse, k, totalIterations);
             }
             if (p.DYNAMIC_LEARNING_RATE)
             {
@@ -134,18 +144,18 @@ public class Teachers {
                     learRok = k;                    
                     k *= (0.5f + Math.random()*1.0f);
                     sdIncreasing -= 20;
-                    log.log("lrate="+k);
+//                    log.log("lrate="+k);
                 }
                 k *= 0.9998f;
                 //System.out.print(" ["+L.learningRateCoef+"] ");
             }
-            if (tres.variance < p.TRG_ERR)
+            if (tres.mse < p.TRG_ERR)
             {
-                log.log("sd target %.4f reached, it=%d", p.TRG_ERR, r.totalIterations);
+                log.log("sd target %.4f reached, it=%d", p.TRG_ERR, totalIterations);
                 break;
             }
             else
-            if (tres.variance >= sdPrev)
+            if (tres.mse >= sdPrev)
             {
                 sdIncreasing++;
             }
@@ -153,28 +163,29 @@ public class Teachers {
             {
                 sdIncreasing--;
             }
-            if (tres.variance < resBest.variance)
+            if (tres.mse < resBest.mse)
             {
                 resBest = tres;
                 sdIncreasing = 0;
             }
-            sdPrev = tres.variance;
+            sdPrev = tres.mse;
         }
-        log.log("done, %d ms, %d lrn-epochs", r.duration, r.totalIterations);
-        
-        if (r.best == null)
+        long time = System.currentTimeMillis() - start;
+        log.log("EBP %dms, %d lrn-epochs", time, totalIterations);
+        if (bestItem != null)
         {
-            log.log("no result - try again");
-            return;
+            r.items.add(bestItem);
+            bestItem.totalIterations = totalIterations + 1;
+            bestItem.searchDuration += time;
         }
-        r.items.add(r.bestItem);
+        return bestItem != null;
     }
     
     
 
-    private static void logSuccess(Log log, int vldCorrect, int testCorrect, TrainingSet T, TrainingSet U)
-    {
-        log.log("trng set; corr  %d/%d (%.2f)%%", vldCorrect, T.set.size(), (vldCorrect*100.0/T.set.size()));
-        log.log("test set; corr  %d/%d (%.2f)%%", testCorrect, U.set.size(), (testCorrect*100.0/U.set.size()));
-    }
+//    private static void logSuccess(Log log, int vldCorrect, int testCorrect, TrainingSet T, TrainingSet U)
+//    {
+//        log.log("trng set; corr  %d/%d (%.2f)%%", vldCorrect, T.set.size(), (vldCorrect*100.0/T.set.size()));
+//        log.log("test set; corr  %d/%d (%.2f)%%", testCorrect, U.set.size(), (testCorrect*100.0/U.set.size()));
+//    }
 }

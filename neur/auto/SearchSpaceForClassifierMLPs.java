@@ -2,7 +2,6 @@
 package neur.auto;
 
 import java.math.BigDecimal;
-import neur.util.sdim.SearchDimension.Parameterised;
 import neur.data.Dataset;
 import neur.data.TrainMode;
 import neur.learning.LearnParams;
@@ -11,6 +10,7 @@ import neur.learning.learner.BackPropagation;
 import neur.learning.learner.ElasticBackProp;
 import static neur.struct.ActivationFunction.Types.*;
 import neur.util.sdim.SearchDimension;
+import neur.util.sdim.SearchDimension.Parameterised;
 import neur.util.sdim.SearchDimension.TargetGenerator;
 
 
@@ -31,25 +31,29 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
     {
         simpleDimensions = new SearchDimension[]
         {
-            hiddenLayerSize = SearchDimension.create.discrete(1, D.data.length, 1)
+            hiddenLayerSize = SearchDimension.create.discrete(1, D.data.length / 2, 1)
                 .setName(Dim.HIDDEN_LR_SIZE),
             
-            stochasticSearchSize = SearchDimension.create.dispersed(1, 100, 1000)
+            stochasticSearchSize = SearchDimension.create.dispersed(0, 100, 1000)
                 .setName(Dim.STOCHASTIC_SEARCH_SIZE),
             
-            learningAlgorithm = SearchDimension.create.dispersed(0, 1, 2, 3)
+            learningAlgorithm = SearchDimension.create.discrete(0, 5, 1)
                 .setName(Dim.LEARNING_ALGORITHM)
                 .setTargetGenerator(new TargetGenerator() {
                     @Override public Object generate(int index)
                     {
                         switch(index) {
-                        case 0: 
-                            return new Object[]{ new BackPropagation(), 0.1f, false, TrainMode.SUPERVISED_BATCH_MODE };
+                        case 0:
+                            return new Object[]{ new BackPropagation(), 0.001f, false, TrainMode.SUPERVISED_BATCH_MODE };
                         case 1:
-                            return new Object[]{ new BackPropagation(), 0.1f, false, TrainMode.SUPERVISED_ONLINE_MODE };
+                            return new Object[]{ new BackPropagation(), 0.025f, false, TrainMode.SUPERVISED_ONLINE_MODE };
                         case 2:
-                            return new Object[]{ new BackPropagation(), 0.1f, true, TrainMode.SUPERVISED_ONLINE_MODE };
+                            return new Object[]{ new BackPropagation(), 0.01f, false, TrainMode.SUPERVISED_BATCH_MODE };
                         case 3:
+                            return new Object[]{ new BackPropagation(), 0.1f, false, TrainMode.SUPERVISED_ONLINE_MODE };
+                        case 4:
+                            return new Object[]{ new BackPropagation(), 0.1f, true, TrainMode.SUPERVISED_ONLINE_MODE };
+                        case 5:
                             return new Object[]{ new ElasticBackProp(), 0.1f, false, TrainMode.SUPERVISED_ONLINE_MODE };
                         }
                         return null;
@@ -73,34 +77,36 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
     {
         int range = offset;
         LearnParams ret = templ.copy();
+        int h;
         int a = super.linearEstimateForSize(activationFunction);
         int s = super.linearEstimateForSize(stochasticSearchSize);
         int la = super.linearEstimateForSize(learningAlgorithm);
-        int h = range / (a * s * la);
+        h = range / (a * s * la);
         ret.NNW_DIMS[1] = h + 1;
         
-        range %= (a * s);
+        range %= (a * s * la);
         BigDecimal[] keyval = super.indexedClassKey_value(activationFunction, range / (s * la));
         ret.NNW_AFUNC = keyval[0].intValue();
         ret.NNW_AFUNC_PARAMS = new float[]{ keyval[1].floatValue()};
         range %= (s * la);
-        ret.RANDOM_SEARCH_ITERS = stochasticSearchSize.getDiscretePoints().get(range / la).intValue();
+        ret.STOCHASTIC_SEARCH_ITERS = stochasticSearchSize.getDiscretePoints().get(range / la).intValue();
         range %= la;
-        NNSearchSpace.LearningAlgorithmParameters o = learningAlgorithm.getTargetGenerator().generate(range);
-        ret.L = o.L;
-        ret.LEARNING_RATE_COEF = o.LEARNING_RATE_COEF;
-        ret.DYNAMIC_LEARNING_RATE = o.DYNAMIC_LEARNING_RATE;
-        ret.MODE = o.MODE;
+        //NNSearchSpace.LearningAlgorithmParameters o = learningAlgorithm.getTargetGenerator().generate(range);
+        Object[] oo = learningAlgorithm.getTargetGenerator().generate(range);;
+        ret.L = (LearningAlgorithm) oo[0];//o.L;
+        ret.LEARNING_RATE_COEF = (float) oo[1]; //o.LEARNING_RATE_COEF;
+        ret.DYNAMIC_LEARNING_RATE = (boolean) oo[2]; //o.DYNAMIC_LEARNING_RATE;
+        ret.MODE = (TrainMode) oo[3]; //o.MODE;
         return ret;
     }
     
     public boolean equal(LearnParams a, LearnParams b)
     {
         if (Math.abs( a.NNW_DIMS[1] - b.NNW_DIMS[1]) < 1
-                && a.RANDOM_SEARCH_ITERS == b.RANDOM_SEARCH_ITERS
+                && a.STOCHASTIC_SEARCH_ITERS == b.STOCHASTIC_SEARCH_ITERS
                 && a.L.getClass() == b.L.getClass() && a.LEARNING_RATE_COEF == b.LEARNING_RATE_COEF && a.MODE == b.MODE 
                 && a.NNW_AFUNC == b.NNW_AFUNC && a.NNW_AFUNC_PARAMS[0] == b.NNW_AFUNC_PARAMS[0])
             return true;
-        return true;
+        return false;
     }
 }

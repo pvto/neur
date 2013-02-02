@@ -109,21 +109,22 @@ public class TabooBoxSearch {
         
         MLP better = n.copy();
         int maxGradIters = (int)(Math.random() * MAX_GRAD_ITERS);
+        maxGradIters -= (maytaboo.space1.length - 600) / 100;
         for (int i = 0; i < maxGradIters; i++)
         {
             teach.trainEpoch(better, ebp, TrainMode.SUPERVISED_ONLINE_MODE, new Object[]{gradientLearningRate});
         }
         Trainres r = valid.trainEpoch(better, ebp, TrainMode.SUPERVISED_NO_TRAINING, new Object[]{gradientLearningRate});
-        if (Float.isNaN(r.variance))
+        if (Float.isNaN(r.mse))
         {   // suggested nw diverged after gradient learning - insert only a point into taboo space
             maytaboo.space2 = maytaboo.space1;
             r = valid.trainEpoch(n, ebp, TrainMode.SUPERVISED_NO_TRAINING, new Object[]{gradientLearningRate});
-            maytaboo.error = r.variance;
+            maytaboo.error = r.mse;
         }
         else
         {   // taboo box found using gradient learning - insert the box into taboo space
             maytaboo.space2 = flatten(better.weights);
-            maytaboo.error = r.variance;
+            maytaboo.error = r.mse;
         }
         
         

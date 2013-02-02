@@ -55,11 +55,10 @@ public class BruteForceMLPSearch implements TopologySearchRoutine<MLP> {
         
         private void teachOne()
         {
-            LearnRecord<MLP> rec = new LearnRecord<MLP>();
             LearnParams p = this.p.copy();
             p.NNW_DIMS = Arrf.copy(this.p.NNW_DIMS);
             p.NNW_DIMS[1] = low; 
-            rec.p = p;
+            LearnRecord<MLP> rec = new LearnRecord<MLP>(p);
             for (int i = 0; i < rounds; i++)
             {
                 rec.p.nnw = new MLP(p);  // former networks are simply discarded; only their results interest us
