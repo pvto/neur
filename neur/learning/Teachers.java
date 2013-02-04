@@ -47,7 +47,8 @@ public class Teachers {
         else {
             if (r.bestItem == stochItem)
             {
-                r.items.remove(r.items.size() - 1);
+                if (r.items.size() > 0)
+                    r.items.remove(r.items.size() - 1);
                 r.items.add(stochItem);
             }
         }
@@ -135,7 +136,9 @@ public class Teachers {
             {
                 bestItem = item;
                 item.bestIteration = totalIterations;
-                log.log("ok=%d error=%.5f lrate=%.5f it=%d", bestItem.testsetCorrect, tres.mse, k, totalIterations);
+                log.log("ok=%d/%d lok=%d/%d  error=%.5f lrate=%.5f it=%d", bestItem.testsetCorrect, p.D.TEST.set.size(),
+                        bestItem.trainsetCorrect, p.D.TRAIN.set.size(),
+                        tres.mse, k, totalIterations);
             }
             if (p.DYNAMIC_LEARNING_RATE)
             {

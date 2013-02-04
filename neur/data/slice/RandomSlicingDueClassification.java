@@ -48,7 +48,7 @@ public class RandomSlicingDueClassification {
         int[] phases = copy(0, thresholds.length);
         
         int[] consumed = new int[thresholds.length];
-        Set<Integer> test = new HashSet<Integer>();
+
         int k;
         while(ret[1].set.size() < testSetSize)
         {
@@ -102,7 +102,7 @@ public class RandomSlicingDueClassification {
         }
         
         for(k = 0; k < data.length; k++)
-            if (!test.contains(k))
+            if (!istest.get(k))
                 ret[0].addSample(data[k]);
         
         return ret;

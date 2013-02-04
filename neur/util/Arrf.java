@@ -130,6 +130,14 @@ public final class Arrf {
             System.arraycopy(arrs[i], 0, res, offset, arrs[i].length);
         return res;
     }
+    public static double[]                  concat(double[] ... arrs)
+    {
+        double[] res = new double[combinedSize(arrs)];
+        for (int i = 0, offset = 0; i < arrs.length; offset += arrs[i++].length)
+            System.arraycopy(arrs[i], 0, res, offset, arrs[i].length);
+        return res;
+    }
+
     public static <T> Iterable<T>           concatite(final Iterable<T> ... some)
     {
         Iterable<T> ret = new Iterable<T>()
@@ -346,7 +354,13 @@ public final class Arrf {
             size += arrs[i].length;
         return size;
     }
-    
+    public static int                       combinedSize(double[] ... arrs)
+    {
+        int size = 0;
+        for (int i = 0; i < arrs.length; i++)
+            size += arrs[i].length;
+        return size;
+    }
     public static float[]                   sqr(float[] data)
     {
         float[] r = new float[data.length];

@@ -44,4 +44,23 @@ public class DiskIO {
             }
         }
     }
+    
+    public void saveSampleCSV(String filename, double[][][] data, int precision) throws IOException
+    {
+        String fmt = "%."+precision+"f";
+        OutputStream out = new FileOutputStream(filename);
+        for (int i = 0; i <data.length; i++)
+        {
+            double[] dd = neur.util.Arrf.concat(data[i][0],data[i][1]);
+            int x = 0;
+            for(double d : dd)
+            {
+                String extra = (x++ == dd.length - 1) 
+                        ? "\r\n"
+                        : ", ";
+                out.write(String.format(fmt+extra, d).getBytes());
+            }
+        }
+        out.close();
+    }
 }

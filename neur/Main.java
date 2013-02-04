@@ -37,10 +37,11 @@ public class Main {
         //intFeed();
         int max_runs = 1;
         final int dataset = 104;
-        final String sample = "new-thyroid";
+        final String sample = "sup-2-sines";
+                //"new-thyroid";
                 //"sierp-1";
-        int[] in = {1,2,3,4,5},
-                out = new int[]{0};
+        int[] in = {0,1,2},
+                out = new int[]{3};
         final String datagen = sample;
         
 //        DbSamples dbSamples = new DbSamples(getDbClient());
@@ -66,20 +67,20 @@ public class Main {
         //dbSamples.deleteSample(dataset, sample);
         LearnParams<MLP,ElasticBackProp> p = new LearnParams()
         {{
-                NNW_AFUNC = ActivationFunction.Types.AFUNC_SIGMOID;
+                NNW_AFUNC = ActivationFunction.Types.AFUNC_TANH;
                 NNW_AFUNC_PARAMS = new float[]{ 3f };
                 MODE = TrainMode.SUPERVISED_ONLINE_MODE;
-                NNW_DIMS = new int[]{tdata[0][0].length, 4, tdata[0][1].length};
+                NNW_DIMS = new int[]{tdata[0][0].length, 200, tdata[0][1].length};
 
                 L = new neur.learning.learner.
-                        BackPropagation();
-                        //ElasticBackProp();
+                        //BackPropagation();
+                        ElasticBackProp();
                 LEARNING_RATE_COEF = 0.125f;
                 DYNAMIC_LEARNING_RATE = true;
                 TRG_ERR = 1e-3f;
                 TEACH_MAX_ITERS = 6000;
                 DIVERGENCE_PRESUMED = Math.min(Math.max(400, TEACH_MAX_ITERS / 2), 1000);
-                STOCHASTIC_SEARCH_ITERS = 0;
+                STOCHASTIC_SEARCH_ITERS = 10;
 
                 DATASET_SLICING = Dataset.Slicing.RandomDueClassification;
                 D = new Dataset()
@@ -119,16 +120,15 @@ public class Main {
     {
         new Teachers().tabooBoxAndIntensification(p, r, log);
         
-        String filename = "mlp" + File.separator 
-                +p.D.DATASET+"-"+p.D.SAMPLE+"-hid"+(r.best.layers[1].length-1)+"-"
-                +ActivationFunction.Types.asString(p.NNW_AFUNC).substring(0,4)
-                +"-ok"+String.format("%.2f", r.bestItem.testsetCorrect*100.0/p.D.TEST.set.size())
-                +"-"+new SimpleDateFormat("yyMMddHHmmss").format(new Date())
-                +".mlp";
-        new DiskIO().save(filename, r.best);
-        log.log("saved: " + filename);
+//        String filename = "mlp" + File.separator 
+//                +p.D.DATASET+"-"+p.D.SAMPLE+"-hid"+(r.best.layers[1].length-1)+"-"
+//                +ActivationFunction.Types.asString(p.NNW_AFUNC).substring(0,4)
+//                +"-ok"+String.format("%.2f", r.bestItem.testsetCorrect*100.0/p.D.TEST.set.size())
+//                +"-"+new SimpleDateFormat("yyMMddHHmmss").format(new Date())
+//                +".mlp";
+//        new DiskIO().save(filename, r.best);
+//        log.log("saved: " + filename);
 
-        if(1==1) return;
 //        for (int j = 0; j < p.D.data.length; j++)
 //        {   // copy resulting values from output neurons to data array for plotting
 //            p.D.data[j][1][3] = r.out[j][0];
@@ -138,26 +138,26 @@ public class Main {
 //        javax.imageio.ImageIO.write(img, "png", new java.io.File(filename+".png"));
         
 
-        String sql = Q.insertInto("run")
-                .a("date", new Date())
-                .a("runtime", r.duration)
-                .a("inlr", r.best.layers[0].length-1, "hidlr", r.best.layers[1].length-1, "outlr", r.best.outv().length-1)
-                .a("teach_mode",r.p.MODE)
-                .a("function",ActivationFunction.Types.asString(r.p.NNW_AFUNC))
-                .a("dyn_lrate",(r.p.DYNAMIC_LEARNING_RATE?1:0))
-                .a("learning_rate",r.p.LEARNING_RATE_COEF,"%.3f")
-                .a("sample",r.p.D.data.length, "data_gen", r.p.D.DATA_GEN)
-                .a("testset_size",r.p.D.TEST.set.size(),"vldset_size",r.p.D.TRAIN.set.size())
-                .a("rnd_search_iters",r.p.STOCHASTIC_SEARCH_ITERS, "rnd_best_iter",0, "rnd_search_time",r.duration)
-                .a("max_iters",r.p.TEACH_MAX_ITERS, "iters",0)
-                .a("targ_sd",r.averageSummedError,"%.5f")
-                .a("imprv_epochs",0,"testset_correct",r.bestItem.testsetCorrect,"vldset_correct",r.bestItem.trainsetCorrect)
-                .a("testset_percentage",(r.bestItem.testsetCorrect*100.0/p.D.TEST.set.size()),"%.2f")
-                .a("testset_percentage",(r.bestItem.trainsetCorrect*100.0/p.D.TRAIN.set.size()),"%.2f")
-                .a("mlpfile",filename)
-                .z();
-        System.out.println(sql);
-        cli().execute(sql);
+//        String sql = Q.insertInto("run")
+//                .a("date", new Date())
+//                .a("runtime", r.duration)
+//                .a("inlr", r.best.layers[0].length-1, "hidlr", r.best.layers[1].length-1, "outlr", r.best.outv().length-1)
+//                .a("teach_mode",r.p.MODE)
+//                .a("function",ActivationFunction.Types.asString(r.p.NNW_AFUNC))
+//                .a("dyn_lrate",(r.p.DYNAMIC_LEARNING_RATE?1:0))
+//                .a("learning_rate",r.p.LEARNING_RATE_COEF,"%.3f")
+//                .a("sample",r.p.D.data.length, "data_gen", r.p.D.DATA_GEN)
+//                .a("testset_size",r.p.D.TEST.set.size(),"vldset_size",r.p.D.TRAIN.set.size())
+//                .a("rnd_search_iters",r.p.STOCHASTIC_SEARCH_ITERS, "rnd_best_iter",0, "rnd_search_time",r.duration)
+//                .a("max_iters",r.p.TEACH_MAX_ITERS, "iters",0)
+//                .a("targ_sd",r.averageSummedError,"%.5f")
+//                .a("imprv_epochs",0,"testset_correct",r.bestItem.testsetCorrect,"vldset_correct",r.bestItem.trainsetCorrect)
+//                .a("testset_percentage",(r.bestItem.testsetCorrect*100.0/p.D.TEST.set.size()),"%.2f")
+//                .a("testset_percentage",(r.bestItem.trainsetCorrect*100.0/p.D.TRAIN.set.size()),"%.2f")
+//                .a("mlpfile",filename)
+//                .z();
+//        System.out.println(sql);
+//        cli().execute(sql);
 
     }
     

@@ -32,34 +32,91 @@ public class LearnRecord<T extends NeuralNetwork> implements Serializable {
     public float
             averageSummedError = 0f,
             averageTestsetCorrect = 0f,
+            varianceTestsetCorrect = 0f,
             averageTrainsetCorrect = 0f,
-            averageFitness = 0f
+            varianceTrainsetCorrect = 0f,
+            averageBestStochasticIteration = 0f,
+            varianceBestStochasticIteration = 0f,
+            averageBestIteration = 0f,
+            varianceBestIteration = 0f,
+            averageTotalIterations = 0f,
+            varianceTotalIterations = 0f,
+            averageStochSearchDuration = 0f,
+            varianceStochSearchDuration = 0f,
+            averageSearchDuration = 0f,
+            varianceSearchDuration = 0f,
+            averageFitness = 0f,
+            varianceFitness = 0f
             ;
     public float[] 
             averageOutputError;
 
     
+    private float sqr(float a) { return a * a; }
+    
+
     public void aggregateResults()
     {
         duration = System.currentTimeMillis() - timestamp;
         int o = p.NNW_DIMS[p.NNW_DIMS.length - 1];
         int count = Math.max(1, items.size());
         averageOutputError = new float[o];
+        float[] avg = new float[]{0f,0f,0f,0f,0f,0f,0f,0f,0f,};
+        float[] vars = new float[]{0f,0f,0f,0f,0f,0f,0f,0f,0f,};
         for(Item item : items)
         {
-            averageFitness += item.fitness;
+            avg = add(avg, new float[]{
+                item.testsetCorrect,
+                item.trainsetCorrect,
+                item.bestStochasticIteration,
+                item.bestIteration,
+                item.totalIterations,
+                item.totalStochasticIterations,
+                item.stochSearchDuration,
+                item.searchDuration,
+                item.fitness});
             for (int i = 0; i < o; i++)
             {
                 averageOutputError[i] += item.error[i];
             }
+            vars = add(vars, new float[]{
+                sqr(item.testsetCorrect - avg[0]),
+                sqr(item.trainsetCorrect - avg[1]),
+                sqr(item.bestStochasticIteration - avg[2]),
+                sqr(item.bestIteration - avg[3]),
+                sqr(item.totalIterations - avg[4]),
+                sqr(item.totalStochasticIterations - avg[5]),
+                sqr(item.stochSearchDuration - avg[6]),
+                sqr(item.searchDuration - avg[7]),
+                sqr(item.fitness - avg[8])
+            });
         }
+        avg = div(avg, items.size());
+        vars = div(vars, items.size());
+        
+        averageTestsetCorrect = avg[0];
+        varianceTestsetCorrect = vars[0];
+        averageTrainsetCorrect = avg[1];
+        varianceTrainsetCorrect = vars[1];
+        averageBestStochasticIteration = avg[2];
+        varianceBestStochasticIteration = vars[2];
+        averageBestIteration = avg[3];
+        varianceBestIteration = vars[3];
+        averageTotalIterations = avg[4];
+        varianceTotalIterations = vars[4];
+        averageStochSearchDuration = avg[5];
+        varianceStochSearchDuration = vars[5];
+        averageSearchDuration = avg[6];
+        varianceSearchDuration = vars[6];
+        averageFitness = avg[7];
+        varianceFitness = vars[7];
+        
         for (int i = 0; i < o; i++)
         {
             averageSummedError += averageOutputError[i];
             averageOutputError[i] /= count;
         }
         averageSummedError /= o * count;
-        averageFitness = averageFitness / count;
 
     }
 
