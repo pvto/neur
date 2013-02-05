@@ -57,7 +57,7 @@ public class Teachers {
             LearnRecord.Item item = (LearnRecord.Item) r.items.get(r.items.size() - 1);
             item.totalStochasticIterations = stochItem.totalStochasticIterations;
             item.bestStochasticIteration = stochItem.bestStochasticIteration;
-            item.stochSearchDuration = stochItem.searchDuration;
+            item.stochSearchDuration = stochItem.stochSearchDuration;
         }
     }
     
@@ -92,7 +92,7 @@ public class Teachers {
         r.best = TS.best;
         item.finish(TS.best);
         time = System.currentTimeMillis() - time;
-        r.duration += time;
+        item.stochSearchDuration = time;
         log.log("TABOO_SRC ok="+item.testsetCorrect +"  "+ time+"ms " + item.bestStochasticIteration+"("+p.STOCHASTIC_SEARCH_ITERS+") var="+TS.leastError);
         return item;
     }
