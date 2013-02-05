@@ -113,7 +113,7 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
     {
         final int linsize = searchSpace.linearEstimateForSize();
         final int maxOperations = 
-                Math.min(linsize, linsize / 3 + 4);
+                Math.max(40, linsize / 6);
         final TopologyFinding<MLP> ret = new TopologyFinding<>(maxOperations);
         
         Runnable r = new Runnable()
@@ -140,10 +140,6 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
                         // treat hidden layer specifically. get it from a square distribution, favoring small hidden layer sizes
                         eve.p.NNW_DIMS[1] = Math.max(1, (int)(eve.p.NNW_DIMS[1] * Math.random()));
                         eve.lrec = new LearnRecord(eve.p);
-                        // do not add exact replicas...
-                        for(Specimen lil : concatite(deceased, population))
-                            if (eve == lil || searchSpace.equal(eve.p, lil.p))
-                                continue;
                     }
                     else
                     {
@@ -159,6 +155,14 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
                         // ok
                         eve = cross(a, b, searchSpace);
                     }
+                    // do not add exact replicas...
+                    for(Specimen lil : population)
+                        if (eve == lil || searchSpace.equal(eve.p, lil.p))
+                            continue;
+                    for(Specimen lil : deceased)
+                        if (eve == lil || searchSpace.equal(eve.p, lil.p))
+                            continue;
+
                     evaluateFitness(eve, c);
                     population.add(eve);
                     ret.countDown(eve.lrec);
@@ -208,6 +212,10 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
             x.p.nnw = new MLP(x.p);
             x.p.D.initTrain_Test_Sets(x.p.TESTSET_SIZE, x.p.DATASET_SLICING);
             new Teachers().tabooBoxAndIntensification(x.p, x.lrec, log);
+            try {   // don't eat up all cpu!
+                Thread.sleep(20);
+            } catch (Exception e) {
+            }
         }
         x.lrec.aggregateResults();
         c.putFitness(x.lrec);

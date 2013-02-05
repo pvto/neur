@@ -17,8 +17,8 @@ public class RelativeMLPFitnessComparator {
         
         @Override  public int compareTo(Rec o)
         {
-            float i = r.averageTestsetCorrect - o.r.averageTestsetCorrect;
-            if (i != 0f) 
+            double i = r.averageTestsetCorrect - o.r.averageTestsetCorrect;
+            if (i != 0.0) 
                 return (int)Math.signum(i);
             if (r.averageSummedError > o.r.averageSummedError)
             {

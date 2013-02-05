@@ -1,4 +1,7 @@
+DROP VIEW "PUBLIC"."RREC_AVG_ORD";
 DROP VIEW "PUBLIC"."run_percentages_2";
+DROP TABLE "PUBLIC"."RREC_AVG";
+DROP TABLE "PUBLIC"."RREC";
 DROP TABLE "PUBLIC"."RUN";
 DROP VIEW "PUBLIC"."SAMPLE";
 DROP TABLE "PUBLIC"."D_VALIDATION_SET";
@@ -43,7 +46,7 @@ CREATE TABLE "PUBLIC"."D_DATAITEM"
     unique(SPECIMEN_ID,INDEX,XGROUP)
 );
 alter table d_dataitem drop column data;
-alter table d_dataitem add column data decimal(14,9) default 0;
+alter table d_dataitem add column data decimal(22,9) default 0;
 
 CREATE TABLE "PUBLIC"."D_VALIDATION_SET"
 (
@@ -111,3 +114,70 @@ create view run_percentages_2 as
 	  from run
 	  group by data_gen,sample,hidlr
 );
+
+
+CREATE TABLE "PUBLIC"."RREC"
+(
+   DATE timestamp,
+   DATA_GEN varchar(14),
+   SAMPLE varchar(4),
+   AFUNC varchar(32),
+   AFUNC_LRC decimal(6,5),
+   LALG varchar(32),
+   TEACH_MODE varchar(32),
+   LRATE decimal(6,5),
+   DYN_LRATE integer,
+   HID_COUNT integer,
+   TRAIN_SIZE integer,
+   TEST_SIZE integer,
+   TRAIN_OK integer,
+   TEST_OK integer,
+   SQR_ERROR decimal(22,9),
+   STOCH_BEST_ITER integer,
+   STOCH_TOT_ITER integer,
+   EBP_BEST_ITER integer,
+   EBP_TOT_ITER integer,
+   STOCH_TIME integer,
+   TOT_TIME integer,
+    FITNESS decimal(22,9)
+);
+
+CREATE TABLE "PUBLIC"."RREC_AVG"
+(
+   RUN_COUNT integer,
+   DATA_GEN varchar(14),
+   SAMPLE varchar(4),
+   AFUNC varchar(32),
+   AFUNC_LRC decimal(6,5),
+   LALG varchar(32),
+   TEACH_MODE varchar(32),
+   LRATE decimal(6,5),
+   DYN_LRATE integer,
+   HID_COUNT integer,
+   TRAIN_SIZE integer,
+   TEST_SIZE integer,
+   TRAIN_OK decimal(22,9),
+    TRAIN_OK_VAR decimal(22,9),
+   TEST_OK decimal(22,9),
+    TEST_OK_VAR decimal(22,9),
+   STOCH_BEST_ITER decimal(22,9),
+    STOCH_BEST_ITER_VAR decimal(22,9),
+   STOCH_TOT_ITER decimal(22,9),
+    STOCH_TOT_ITER_VAR decimal(22,9),
+   EBP_BEST_ITER decimal(22,9),
+    EBP_BEST_ITER_VAR decimal(22,9),
+   EBP_TOT_ITER decimal(22,9),
+    EBP_TOT_ITER_var decimal(22,9),
+   STOCH_TIME decimal(22,9),
+    STOCH_TIME_VAR decimal(22,9),
+   TOT_TIME decimal(22,9),
+    TOT_TIME_VAR decimal(22,9),
+   FITNESS decimal(22,9),
+    FITNESS_VAR decimal(22,9)
+)
+;
+
+create view rrec_avg_ord as
+select * from rrec_avg
+order by test_ok desc, train_ok desc, hid_count, stoch_time+tot_time
+;

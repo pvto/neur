@@ -31,13 +31,13 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
     {
         simpleDimensions = new SearchDimension[]
         {
-            hiddenLayerSize = SearchDimension.create.discrete(1, D.data.length / 2, 1)
+            hiddenLayerSize = SearchDimension.create.discrete(1, D.data.length / 3, 1)
                 .setName(Dim.HIDDEN_LR_SIZE),
             
             stochasticSearchSize = SearchDimension.create.dispersed(0, 100, 1000)
                 .setName(Dim.STOCHASTIC_SEARCH_SIZE),
             
-            learningAlgorithm = SearchDimension.create.discrete(0, 5, 1)
+            learningAlgorithm = SearchDimension.create.discrete(0, 3, 1)
                 .setName(Dim.LEARNING_ALGORITHM)
                 .setTargetGenerator(new TargetGenerator() {
                     @Override public Object generate(int index)
@@ -46,14 +46,10 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
                         case 0:
                             return new Object[]{ new BackPropagation(), 0.001f, false, TrainMode.SUPERVISED_BATCH_MODE };
                         case 1:
-                            return new Object[]{ new BackPropagation(), 0.025f, false, TrainMode.SUPERVISED_ONLINE_MODE };
-                        case 2:
-                            return new Object[]{ new BackPropagation(), 0.01f, false, TrainMode.SUPERVISED_BATCH_MODE };
-                        case 3:
                             return new Object[]{ new BackPropagation(), 0.1f, false, TrainMode.SUPERVISED_ONLINE_MODE };
-                        case 4:
+                        case 2:
                             return new Object[]{ new BackPropagation(), 0.1f, true, TrainMode.SUPERVISED_ONLINE_MODE };
-                        case 5:
+                        case 3:
                             return new Object[]{ new ElasticBackProp(), 0.1f, false, TrainMode.SUPERVISED_ONLINE_MODE };
                         }
                         return null;

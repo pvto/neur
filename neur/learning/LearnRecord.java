@@ -29,7 +29,7 @@ public class LearnRecord<T extends NeuralNetwork> implements Serializable {
     public long timestamp = 0,
             duration = 0;
 
-    public float
+    public double
             averageSummedError = 0f,
             averageTestsetCorrect = 0f,
             varianceTestsetCorrect = 0f,
@@ -52,7 +52,7 @@ public class LearnRecord<T extends NeuralNetwork> implements Serializable {
             averageOutputError;
 
     
-    private float sqr(float a) { return a * a; }
+    private double sqr(double a) { return a * a; }
     
 
     public void aggregateResults()
@@ -61,11 +61,11 @@ public class LearnRecord<T extends NeuralNetwork> implements Serializable {
         int o = p.NNW_DIMS[p.NNW_DIMS.length - 1];
         int count = Math.max(1, items.size());
         averageOutputError = new float[o];
-        float[] avg = new float[]{0f,0f,0f,0f,0f,0f,0f,0f,0f,};
-        float[] vars = new float[]{0f,0f,0f,0f,0f,0f,0f,0f,0f,};
+        double[] avg = new double[]{0,0,0,0,0,0,0,0,0,};
+        double[] vars = new double[]{0,0,0,0,0,0,0,0,0,};
         for(Item item : items)
         {
-            avg = add(avg, new float[]{
+            avg = add(avg, new double[]{
                 item.testsetCorrect,
                 item.trainsetCorrect,
                 item.bestStochasticIteration,
@@ -79,7 +79,11 @@ public class LearnRecord<T extends NeuralNetwork> implements Serializable {
             {
                 averageOutputError[i] += item.error[i];
             }
-            vars = add(vars, new float[]{
+        }
+        avg = div(avg, items.size());
+        for(Item item : items)
+        {
+            vars = add(vars, new double[]{
                 sqr(item.testsetCorrect - avg[0]),
                 sqr(item.trainsetCorrect - avg[1]),
                 sqr(item.bestStochasticIteration - avg[2]),
@@ -91,7 +95,6 @@ public class LearnRecord<T extends NeuralNetwork> implements Serializable {
                 sqr(item.fitness - avg[8])
             });
         }
-        avg = div(avg, items.size());
         vars = div(vars, items.size());
         
         averageTestsetCorrect = avg[0];
@@ -137,7 +140,7 @@ public class LearnRecord<T extends NeuralNetwork> implements Serializable {
                 ;
         public Trainres trainres;
         /** fitness is calculated by an evaluator of the fitness of this result */
-        public float fitness;
+        public double fitness;
         public float[] error;
         public int 
                 testsetCorrect = 0,

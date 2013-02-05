@@ -489,7 +489,16 @@ public final class Arrf {
             R[i] = A[i] + B[i];
         }
         return R;
-    }  
+    }
+    public static double[]                  add(double[] A, double[] B)
+    {
+        double[] R = new double[B.length];
+        for (int i = 0; i < R.length; i++)
+        {
+            R[i] = A[i] + B[i];
+        }
+        return R;
+    }
     public static int[]                     subtract(int from, int[] A)
     {
         int[] r = new int[A.length];
@@ -522,7 +531,14 @@ public final class Arrf {
         }
         return r;
     }    
-
+    public static double[]                   div(double[] data, double divisor)
+    {
+        double[] r = new double[data.length];
+        for (int i = 0; i < r.length; i++) {
+            r[i] = data[i] / divisor;
+        }
+        return r;
+    }  
     // --- statistical functions for even distributions --- //
     
     public static float                     evdist_mean(float[] data)
