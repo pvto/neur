@@ -126,6 +126,8 @@ public class MLP implements NeuralNetwork, Serializable {
             // Glorot & Bengio [2010]
             float glorot = (float) (Math.sqrt(6.0) 
                     / Math.sqrt(layers[layer - 1].length + layers[layer].length)) * 2f;
+            if (activationFunction instanceof SigmoidalFunc)
+                glorot *= 4f;
             float[][] LL = weights[layer - 1];
             float[] L = new float[layers[layer - 1].length];
             LL[unit-1] = L;
