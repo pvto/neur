@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 /**
  *
@@ -51,7 +52,7 @@ public final class Q <T extends DbCli>
             if (hyphens) p.append('\'');
             if(fmt == null){
                 if (!hyphens){p.append(val);}
-                else if (Number.class.isAssignableFrom(val.getClass())){p.append(String.format("%.4f",val));}
+                else if (Number.class.isAssignableFrom(val.getClass())){p.append(String.format(Locale.ENGLISH, "%.4f",val));}
                 else if (val instanceof Date){p.append(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(val));}
                 else{p.append(val.toString());}
             }

@@ -178,6 +178,7 @@ CREATE TABLE "PUBLIC"."RREC_AVG"
 ;
 
 create view rrec_avg_ord as
-select * from rrec_avg
+select co.*,av.* from rrec_avg av
+left join (select count(*) from rrec_avg) co on 1=1
 order by test_ok desc, train_ok desc, hid_count, stoch_time+tot_time
-;
+; 

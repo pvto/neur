@@ -3,6 +3,7 @@ package neur.data;
 
 import java.io.Serializable;
 import java.util.BitSet;
+import neur.data.slice.RandomSlicing;
 import neur.data.slice.RandomSlicingDueClassification;
 import neur.data.slice.SystematicSlicing;
 
@@ -16,6 +17,7 @@ public class Dataset implements Serializable {
     {
         Systematic,
         RandomDueClassification,
+        Random,
     }
     /** use this name to identify the generating data distribution of the data in this set */
     public String DATA_GEN = "x";
@@ -50,6 +52,10 @@ public class Dataset implements Serializable {
         else if (slicing == Slicing.RandomDueClassification)
         {
             t_v = new RandomSlicingDueClassification().slice(testSetSize, data, istest);
+        }
+        else if (slicing == Slicing.Random)
+        {
+            t_v = new RandomSlicing().slice(testSetSize, data, istest);
         }
         TRAIN = t_v[0];  TEST = t_v[1];
     }

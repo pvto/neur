@@ -244,6 +244,14 @@ public final class Arrf {
         }
         return r;
     }
+    public static float[][][]               arrayff_shallow(List<float[][]> data)
+    {
+        float[][][] r = new float[data.size()][][];
+        for (int i = 0; i < r.length; i++)
+            r[i] = data.get(i);
+        return r;
+    }
+
     public static int[][]                   array(List<int[]> data)
     {
         int[][] r = new int[data.size()][];
@@ -566,6 +574,6 @@ public final class Arrf {
         return (float)Math.sqrt((float)evdist_variance(data));
     }
 
-    
 
+    
 }

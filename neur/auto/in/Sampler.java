@@ -13,7 +13,8 @@ import static neur.util.Arrf.*;
 public class Sampler {
     
     public int DISCR_DATA_UPPER_THRESHOLD = 10;
-
+    public int EVEN_OUT_CL_DISTRIB = 1;
+    
     public float[][][] extractSample(List<String[]> raw, int[] in, int[] out)
     {
         float[][][] r = new float[raw.size()][][];
@@ -133,7 +134,7 @@ public class Sampler {
             }
         }
         // if classifying, make the distribution of output classes even by randomly copying input rows into the sample
-        if (out.length == 1 && totalOuts > 1)
+        if (EVEN_OUT_CL_DISTRIB > 0 && out.length == 1 && totalOuts > 1)
         {
             int[] volumes = new int[totalOuts];
             for (int k = 0; k < r.length; k++)

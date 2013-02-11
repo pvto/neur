@@ -37,20 +37,20 @@ public class Main {
         //intFeed();
         int max_runs = 1;
         final int dataset = 104;
-        final String sample = "sup-2-sines";
-                //"new-thyroid";
-                //"sierp-1";
-        int[] in = {0,1,2},
-                out = new int[]{3};
+//        final String sample = "ecoli";
+//        int[] in = {1,2,3,4,5,6,7}, out = new int[]{8};
+        final String sample = "bupa";
+        int[] in = {0,1,2,3,4,5}, out = new int[]{6};
         final String datagen = sample;
         
 //        DbSamples dbSamples = new DbSamples(getDbClient());
 //        final float[][][] tdata = createSample();
 //        final float[][][] tdata = dbSamples.loadSample(dataset, sample);
-        final float[][][] tdata = neur.util.Arrf.normaliseMinmax(
+        final float[][][] tdata = 
+                neur.util.Arrf.normaliseMinmax(
                 
                 new Sampler().extractSample(
-                new DiskIO().loadCSV("/media/KINGSTON/nlg/data/MATLAB/"+sample+".data",",\\s*"), 
+                new DiskIO().loadCSV("/home/paavoto/src/neur2/src_copy/data/MATLAB/"+sample+".data","(,\\s*|,?s+)"), 
                 in, out))
                 ;
                 //"/media/KINGSTON/nlg/data/MATLAB/new-thyroid.data",","),
@@ -70,17 +70,17 @@ public class Main {
                 NNW_AFUNC = ActivationFunction.Types.AFUNC_TANH;
                 NNW_AFUNC_PARAMS = new float[]{ 3f };
                 MODE = TrainMode.SUPERVISED_ONLINE_MODE;
-                NNW_DIMS = new int[]{tdata[0][0].length, 200, tdata[0][1].length};
+                NNW_DIMS = new int[]{tdata[0][0].length, 32, tdata[0][1].length};
 
                 L = new neur.learning.learner.
-                        //BackPropagation();
-                        ElasticBackProp();
-                LEARNING_RATE_COEF = 0.125f;
-                DYNAMIC_LEARNING_RATE = true;
+                        BackPropagation();
+                        //ElasticBackProp();
+                LEARNING_RATE_COEF = 0.001f;
+                DYNAMIC_LEARNING_RATE = false;
                 TRG_ERR = 1e-3f;
                 TEACH_MAX_ITERS = 6000;
                 DIVERGENCE_PRESUMED = Math.min(Math.max(400, TEACH_MAX_ITERS / 2), 1000);
-                STOCHASTIC_SEARCH_ITERS = 10;
+                STOCHASTIC_SEARCH_ITERS = 1000;
 
                 DATASET_SLICING = Dataset.Slicing.RandomDueClassification;
                 D = new Dataset()
