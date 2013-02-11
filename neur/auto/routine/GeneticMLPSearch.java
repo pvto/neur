@@ -54,14 +54,28 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
      */
     private Specimen cross(Specimen a, Specimen b, NNSearchSpace searchSpace)
     {
-        Specimen eve = new Specimen();
         // copy attributes from either parent
-        eve.p = (Math.random() > 0.5 ? b.p : a.p).copy();
+        Specimen A = (Math.random() > 0.5 ? b : a),
+                B = A == a ? b : a;
+        Specimen eve = new Specimen();
+        eve.p = A.p.copy();
         eve.lrec = new LearnRecord(eve.p);
         // pick hidden layer dimension from between parents'
-        int dim = Math.min(a.p.NNW_DIMS[1], b.p.NNW_DIMS[1]);
-        int dim2 = Math.max(a.p.NNW_DIMS[1], b.p.NNW_DIMS[1]);
+        int dim = Math.min(A.p.NNW_DIMS[1], B.p.NNW_DIMS[1]);
+        int dim2 = Math.max(A.p.NNW_DIMS[1], B.p.NNW_DIMS[1]);
         eve.p.NNW_DIMS[1] = dim + (int) ((dim2 - dim) * Math.random());
+        // Get randomly genes from the either parent.
+        // There are no dominant genes.
+        if (Math.random() > 0.5)
+        {
+            eve.p.DYNAMIC_LEARNING_RATE = B.p.DYNAMIC_LEARNING_RATE;
+            eve.p.LEARNING_RATE_COEF = B.p.LEARNING_RATE_COEF;
+            eve.p.MODE = B.p.MODE;
+            eve.p.NNW_AFUNC = B.p.NNW_AFUNC;
+            eve.p.NNW_AFUNC_PARAMS = B.p.NNW_AFUNC_PARAMS;
+        }
+        if (Math.random() > 0.5)
+            eve.p.STOCHASTIC_SEARCH_ITERS = B.p.STOCHASTIC_SEARCH_ITERS;
         // modify genes by random mutation with a small probability
         if (Math.random() < PROB_RANDOM_MUTATION)
         {   
@@ -160,6 +174,9 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
                     for(Specimen lil : deceased)
                         if (eve == lil || searchSpace.equal(eve.p, lil.p))
                             continue;
+                    
+                    ++i;
+                    
                     if (cat.challenge(eve) == 0)
                         continue;
 
@@ -167,7 +184,7 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
                     population.add(eve);
                     ret.countDown(eve.lrec);
                     // keep the population relatively small with some fit and some random individuals
-                    if (++i % (GENEPOOL_SIZE * 2) == GENEPOOL_SIZE * 2 - 1)
+                    if (i % (GENEPOOL_SIZE * 2) == GENEPOOL_SIZE * 2 - 1)
                     {
                         Collections.sort(population, FITNESS);
                         while(population.size() > GENEPOOL_SIZE)
@@ -177,6 +194,7 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
                         }
                     }
                 }
+                ret.finish();
             }
 
 
@@ -293,8 +311,8 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
         }
         Object[] chase(Specimen prey)
         {
-            MLP m = new MLP(prey.p);
             LearnParams p = prey.p.copy();
+            p.nnw = new MLP(prey.p);
             LearnRecord lrec = new LearnRecord(p);
             p.D.initTrain_Test_Sets(p.TESTSET_SIZE, p.DATASET_SLICING);
             new Teachers().tabooBoxAndIntensification(p, lrec, challog);

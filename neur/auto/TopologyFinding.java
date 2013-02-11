@@ -29,6 +29,11 @@ public class TopologyFinding<T extends NeuralNetwork> extends Observable {
      * @return {records[], (int)best} */
     public synchronized Object[] atomic_getRecordsAndBest() { return new Object[]{records,best}; }
 
+    public synchronized void finish()
+    {
+        sort();
+        searchState = SEARCH_FINISHED;
+    }
 
 
     public static class Item {          public Item(LearnRecord r){this.res=r;}
