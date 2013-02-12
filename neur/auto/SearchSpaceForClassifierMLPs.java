@@ -19,6 +19,7 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
 
     public final SearchDimension 
             hiddenLayerSize,
+            hiddenLayerCount,
             stochasticSearchSize,
             learningAlgorithm
             ;
@@ -33,6 +34,9 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
         {
             hiddenLayerSize = SearchDimension.create.discrete(1, D.data.length / 3, 1)
                 .setName(Dim.HIDDEN_LR_SIZE),
+            
+            hiddenLayerCount = SearchDimension.create.dispersed(1, 2, 3, 4)
+                .setName(Dim.HIDDEN_LR_COUNT),
             
             stochasticSearchSize = SearchDimension.create.dispersed(0, 100, 1000)
                 .setName(Dim.STOCHASTIC_SEARCH_SIZE),
@@ -74,20 +78,30 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
         int range = offset;
         LearnParams ret = templ.copy();
         int h;
+        int hc = super.linearEstimateForSize(hiddenLayerCount);
         int a = super.linearEstimateForSize(activationFunction);
         int s = super.linearEstimateForSize(stochasticSearchSize);
         int la = super.linearEstimateForSize(learningAlgorithm);
-        h = range / (a * s * la);
-        ret.NNW_DIMS[1] = h + 1;
-        
+        // resolve hidden neuron count per layer
+        h = range / (hc * a * s * la);
+        range %= (hc * a * s * la);
+        // resolve hidden layer count
+        int hcount = hiddenLayerCount.getDiscretePoints().get(range / (a * s * la)).intValue();
+        int[] NNWD = new int[hcount+2];
+        NNWD[0] = ret.NNW_DIMS[0];  NNWD[NNWD.length - 1] = ret.NNW_DIMS[ret.NNW_DIMS.length - 1];
+        for(int i = hcount; i > 0; i--)
+            NNWD[i] = h;
+        ret.NNW_DIMS = NNWD;
         range %= (a * s * la);
+        // resolve activation function and parameters
         BigDecimal[] keyval = super.indexedClassKey_value(activationFunction, range / (s * la));
         ret.NNW_AFUNC = keyval[0].intValue();
         ret.NNW_AFUNC_PARAMS = new float[]{ keyval[1].floatValue()};
         range %= (s * la);
+        // resolve stochastic search iteration count
         ret.STOCHASTIC_SEARCH_ITERS = stochasticSearchSize.getDiscretePoints().get(range / la).intValue();
         range %= la;
-        //NNSearchSpace.LearningAlgorithmParameters o = learningAlgorithm.getTargetGenerator().generate(range);
+        // resolve learning algorithm
         Object[] oo = learningAlgorithm.getTargetGenerator().generate(range);;
         ret.L = (LearningAlgorithm) oo[0];//o.L;
         ret.LEARNING_RATE_COEF = (float) oo[1]; //o.LEARNING_RATE_COEF;

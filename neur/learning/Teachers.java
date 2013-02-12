@@ -33,31 +33,31 @@ public class Teachers {
         if (p.STOCHASTIC_SEARCH_ITERS > 0)
         {
             stochItem = tabooBox(p, r, log);
-            r.items.remove(r.items.size() - 1);
             nnw = (T)r.best;
         }
         else
         {
             nnw = p.nnw.copy();
         }
-        if (!intensification(p, r, log, nnw) && stochItem != null)
+        LearnRecord.Item item = intensification(p, r, log, nnw);
+        if (item == null && stochItem != null)
         {   // put stochastic result back...
             r.items.add(stochItem);
         }
-        else {
+        else if (stochItem != null)
+        {
             if (r.bestItem == stochItem)
             {
-                if (r.items.size() > 0)
-                    r.items.remove(r.items.size() - 1);
+                if (item != null)
+                    r.items.remove(item);
                 r.items.add(stochItem);
             }
-        }
-        if (stochItem != null)
-        {
-            LearnRecord.Item item = (LearnRecord.Item) r.items.get(r.items.size() - 1);
-            item.totalStochasticIterations = stochItem.totalStochasticIterations;
-            item.bestStochasticIteration = stochItem.bestStochasticIteration;
-            item.stochSearchDuration = stochItem.stochSearchDuration;
+            else
+            {
+                item.totalStochasticIterations = stochItem.totalStochasticIterations;
+                item.bestStochasticIteration = stochItem.bestStochasticIteration;
+                item.stochSearchDuration = stochItem.stochSearchDuration;
+            }
         }
     }
     
@@ -79,7 +79,7 @@ public class Teachers {
         T best;
         TabooBoxSearch TS = new TabooBoxSearch();
         List<Taboo> taboos = new ArrayList<Taboo>();
-        LearnRecord.Item item = r.addItem();
+        LearnRecord.Item item = r.createItem();
         long time = System.currentTimeMillis();
         for(int i = 0; i < p.STOCHASTIC_SEARCH_ITERS; i++)
         {
@@ -93,14 +93,14 @@ public class Teachers {
         item.finish(TS.best);
         time = System.currentTimeMillis() - time;
         item.stochSearchDuration = time;
-        log.log("TABOO_SRC ok="+item.testsetCorrect +"  "+ time+"ms " + item.bestStochasticIteration+"("+p.STOCHASTIC_SEARCH_ITERS+") var="+TS.leastError);
+        log.log("TABOO_SRC tok="+item.testsetCorrect +" lok=" + item.trainsetCorrect + "  "+ time+"ms " + item.bestStochasticIteration+"("+p.STOCHASTIC_SEARCH_ITERS+") var="+TS.leastError);
         return item;
     }
     
     
     public <T extends NeuralNetwork, U extends LearningAlgorithm>
             
-            boolean intensification(LearnParams<T,U> p, LearnRecord r, Log log, T nnw)
+            LearnRecord.Item intensification(LearnParams<T,U> p, LearnRecord r, Log log, T nnw)
     {
         p.L.clear();        
         Trainres resBest = new Trainres();
@@ -145,7 +145,7 @@ public class Teachers {
                 if (sdIncreasing > 40)
                 {
                     learRok = k;                    
-                    k *= (0.5f + Math.random()*1.0f);
+                    k *= (0.5f + Math.random()*0.5f);
                     sdIncreasing -= 20;
 //                    log.log("lrate="+k);
                 }
@@ -179,9 +179,9 @@ public class Teachers {
         {
             r.items.add(bestItem);
             bestItem.totalIterations = totalIterations + 1;
-            bestItem.searchDuration += time;
+            bestItem.searchDuration = time;
         }
-        return bestItem != null;
+        return bestItem;
     }
     
     

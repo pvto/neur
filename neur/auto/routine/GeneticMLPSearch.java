@@ -38,9 +38,12 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
     public int GENEPOOL_SIZE = 20;
     public double PROB_GENERATE_NEW_INDIVIDUAL = 0.5;
     public double PROB_RANDOM_MUTATION = 0.1;
+    public double MAX_DIMENSION_SEARCH_RATIO = 1.0 / 6.0;
     
     public boolean REMOTING = false; // TODO: implement remote server+client
     private Executor exepool = Executors.newCachedThreadPool();
+
+    static Log log = Log.create.chained(Log.cout, Log.file.bind("gen-mlp-s.log"));
     
     private static class Specimen {
         LearnParams p;
@@ -64,6 +67,21 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
         int dim = Math.min(A.p.NNW_DIMS[1], B.p.NNW_DIMS[1]);
         int dim2 = Math.max(A.p.NNW_DIMS[1], B.p.NNW_DIMS[1]);
         eve.p.NNW_DIMS[1] = dim + (int) ((dim2 - dim) * Math.random());
+        // pick hidden layer count from between parents'
+        int hc = Math.min(A.p.NNW_DIMS.length - 2, B.p.NNW_DIMS.length - 2);
+        int hc2 = Math.max(A.p.NNW_DIMS.length - 2, B.p.NNW_DIMS.length - 2);
+        if (hc2 > hc)
+        {
+            int rnd = 1 + (int) (Math.random() * (hc2 - hc));
+            while (rnd * eve.p.NNW_DIMS[1] > eve.p.D.data.length * MAX_DIMENSION_SEARCH_RATIO)
+                rnd--;
+            int[] t = eve.p.NNW_DIMS;
+            eve.p.NNW_DIMS = new int[2 + rnd];
+            eve.p.NNW_DIMS[0] = t[0];
+            eve.p.NNW_DIMS[eve.p.NNW_DIMS.length - 1] = t[t.length - 1];
+            for(int i = rnd; i > 0; i--)
+                eve.p.NNW_DIMS[i] = t[1];
+        }
         // Get randomly genes from the either parent.
         // There are no dominant genes.
         if (Math.random() > 0.5)
@@ -151,6 +169,19 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
                         eve.p = searchSpace.resolveTopologyFromFlattenedIndex(templParams, ind);
                         // treat hidden layer specifically. get it from a square distribution, favoring small hidden layer sizes
                         eve.p.NNW_DIMS[1] = Math.max(1, (int)(eve.p.NNW_DIMS[1] * Math.random()));
+                        // even out to not get too big dimensions
+                        int nh = eve.p.NNW_DIMS.length - 2;
+                        while (nh > 1 && eve.p.NNW_DIMS[1] * nh > eve.p.D.data.length * MAX_DIMENSION_SEARCH_RATIO)
+                            nh--;
+                        if (nh > eve.p.NNW_DIMS.length - 2)
+                        {
+                            int[] t = eve.p.NNW_DIMS;
+                            eve.p.NNW_DIMS = new int[nh + 2];
+                            eve.p.NNW_DIMS[0] = t[0];
+                            eve.p.NNW_DIMS[eve.p.NNW_DIMS.length - 1] = t[t.length - 1];
+                            for(int x = nh; x > 0; x--)
+                                eve.p.NNW_DIMS[x] = t[1];
+                        }
                         eve.lrec = new LearnRecord(eve.p);
                     }
                     else
@@ -219,7 +250,7 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
 
     };
 
-    static Log log = Log.create.chained(Log.cout, Log.file.bind("gen-mlp-s.log"));
+
     private static void evaluateFitness(Specimen x, RelativeMLPFitnessComparator c, Predator cat)
     {
         log.log("evaluate fitness h%d L%s ", x.p.NNW_DIMS[1], x.p.L.getClass());
@@ -317,18 +348,22 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
             p.D.initTrain_Test_Sets(p.TESTSET_SIZE, p.DATASET_SLICING);
             new Teachers().tabooBoxAndIntensification(p, lrec, challog);
             LearnRecord.Item item = (LearnRecord.Item) lrec.bestItem;
+            if (item == null)
+                return new Object[]{null,null};
             boolean ok = item.testsetCorrect >= p.D.TEST.set.size() / meek
                    && item.trainsetCorrect >= p.D.TRAIN.set.size() / meek;
-            challog.log("chase: fleed= %s (te= %d|%f, tr= %d|%f)", ok, 
+            challog.log("chase: fled= %s (te= %d"
+                    + "|%f, tr= %d|%f)", ok, 
                     item.testsetCorrect, p.D.TEST.set.size() / meek,
                     item.trainsetCorrect, p.D.TRAIN.set.size() / meek);
             return new Object[]{ok?true:null, item};
         }
         void logChallenge(Specimen prey)
         {
-            challog.log("chall: assess= %s; eve= (h=%d, stoc=%d, af=%d, k=%f, m=%s, lr=%f)", 
+            challog.log("chall: assess= %s; eve= (h=%d*%d, stoc=%d, af=%d, k=%f, m=%s, lr=%f)", 
                     readyToAssess(),
-                    prey.p.NNW_DIMS[1], prey.p.STOCHASTIC_SEARCH_ITERS, prey.p.NNW_AFUNC,
+                    prey.p.NNW_DIMS[1], prey.p.NNW_DIMS.length-2, 
+                    prey.p.STOCHASTIC_SEARCH_ITERS, prey.p.NNW_AFUNC,
                     prey.p.NNW_AFUNC_PARAMS[0], prey.p.MODE, prey.p.LEARNING_RATE_COEF);
         }
     }

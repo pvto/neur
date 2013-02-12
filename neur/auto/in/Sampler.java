@@ -12,7 +12,7 @@ import static neur.util.Arrf.*;
  */
 public class Sampler {
     
-    public int DISCR_DATA_UPPER_THRESHOLD = 10;
+    public int DISCR_DATA_UPPER_THRESHOLD = 32;
     public int EVEN_OUT_CL_DISTRIB = 1;
     
     public float[][][] extractSample(List<String[]> raw, int[] in, int[] out)
@@ -31,11 +31,11 @@ public class Sampler {
             inContains[i] = contains(in, i);
             outContains[i] = contains(out, i);
         }
-        for (int k = 0; k < raw.size(); k++)
+        for (int j = 0; j < templ.length; j++)
         {
-            String[] cols = raw.get(k);
-            for (int j = 0; j < templ.length; j++)
+            for (int k = 0; k < raw.size(); k++)            
             {
+                String[] cols = raw.get(k);
                 cols[j] = cols[j]
                         .replace(',', '.');
                 if (real[j])
@@ -44,13 +44,13 @@ public class Sampler {
                     {
                         integral[j] = false;
                         real[j] = false;
+                        break;
                     }
-                    else if (!cols[j].matches("-?\\d+") || Long.parseLong(cols[j]) > DISCR_DATA_UPPER_THRESHOLD)
+                    else if (!cols[j].matches("-?\\d+(\\.0*)?") || Long.parseLong(cols[j]) > DISCR_DATA_UPPER_THRESHOLD)
                     {
                         integral[j] = false;
                     }
                 }
-                
             }
         }
         // extract each input column according to its datatype into a temporary array

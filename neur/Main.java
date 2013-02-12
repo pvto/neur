@@ -39,8 +39,8 @@ public class Main {
         final int dataset = 104;
 //        final String sample = "ecoli";
 //        int[] in = {1,2,3,4,5,6,7}, out = new int[]{8};
-        final String sample = "bupa";
-        int[] in = {0,1,2,3,4,5}, out = new int[]{6};
+        final String sample = "haberman";
+        int[] in = {0,1,2}, out = new int[]{3};
         final String datagen = sample;
         
 //        DbSamples dbSamples = new DbSamples(getDbClient());
@@ -49,38 +49,31 @@ public class Main {
         final float[][][] tdata = 
                 neur.util.Arrf.normaliseMinmax(
                 
-                new Sampler().extractSample(
+                new Sampler(){{EVEN_OUT_CL_DISTRIB=0;}}
+                .extractSample(
                 new DiskIO().loadCSV("/home/paavoto/src/neur2/src_copy/data/MATLAB/"+sample+".data","(,\\s*|,?s+)"), 
                 in, out))
                 ;
-                //"/media/KINGSTON/nlg/data/MATLAB/new-thyroid.data",","),
-                //new int[]{1,2,3,4,5},new int[]{0});
-                //"/media/KINGSTON/nlg/data/MATLAB/haberman.data",","),
-                //new int[]{0,1,2},new int[]{3});
-                //"/media/KINGSTON/nlg/data/MATLAB/ecoli.data","\\s+"),
-                //new int[]{1,2,5,6,7},new int[]{8});
-                //bupa.data", ","), 
-                //new int[]{0,1,2,3,4,5}, // input layer columns
-                //new int[]{6});  // supervision columns (out layer expected values)
                 
 //        dbSamples.saveSample(dataset, datagen, sample, tdata);
         //dbSamples.deleteSample(dataset, sample);
+        log.log("loaded dataset %s (in,out):(%d,%d)", sample, tdata[0][0].length, tdata[0][1].length);
         LearnParams<MLP,ElasticBackProp> p = new LearnParams()
         {{
                 NNW_AFUNC = ActivationFunction.Types.AFUNC_TANH;
                 NNW_AFUNC_PARAMS = new float[]{ 3f };
                 MODE = TrainMode.SUPERVISED_ONLINE_MODE;
-                NNW_DIMS = new int[]{tdata[0][0].length, 32, tdata[0][1].length};
+                NNW_DIMS = new int[]{tdata[0][0].length, 1,1,1, tdata[0][1].length};
 
                 L = new neur.learning.learner.
-                        BackPropagation();
-                        //ElasticBackProp();
-                LEARNING_RATE_COEF = 0.001f;
-                DYNAMIC_LEARNING_RATE = false;
-                TRG_ERR = 1e-3f;
+                        //BackPropagation();
+                        ElasticBackProp();
+                LEARNING_RATE_COEF = 0.1f;
+                DYNAMIC_LEARNING_RATE = true;
+                TRG_ERR = 1e-9f;
                 TEACH_MAX_ITERS = 6000;
-                DIVERGENCE_PRESUMED = Math.min(Math.max(400, TEACH_MAX_ITERS / 2), 1000);
-                STOCHASTIC_SEARCH_ITERS = 1000;
+                DIVERGENCE_PRESUMED = Math.min(Math.max(400, TEACH_MAX_ITERS / 2), 2000);
+                STOCHASTIC_SEARCH_ITERS = 100;
 
                 DATASET_SLICING = Dataset.Slicing.RandomDueClassification;
                 D = new Dataset()
