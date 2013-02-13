@@ -50,11 +50,15 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
                         case 0:
                             return new Object[]{ new BackPropagation(), 0.001f, false, TrainMode.SUPERVISED_BATCH_MODE };
                         case 1:
-                            return new Object[]{ new BackPropagation(), 0.1f, false, TrainMode.SUPERVISED_ONLINE_MODE };
+                            return new Object[]{ new BackPropagation(), 0.01f, true, TrainMode.SUPERVISED_MINIBATCH };
                         case 2:
-                            return new Object[]{ new BackPropagation(), 0.1f, true, TrainMode.SUPERVISED_ONLINE_MODE };
+                            return new Object[]{ new BackPropagation(), 0.1f, false, TrainMode.SUPERVISED_ONLINE_MODE };
                         case 3:
+                            return new Object[]{ new BackPropagation(), 0.1f, true, TrainMode.SUPERVISED_ONLINE_MODE };
+                        case 4:
                             return new Object[]{ new ElasticBackProp(), 0.1f, false, TrainMode.SUPERVISED_ONLINE_MODE };
+                        case 5:
+                            return new Object[]{ new ElasticBackProp(), 0.1f, true, TrainMode.SUPERVISED_MINIBATCH };
                         }
                         return null;
                     }

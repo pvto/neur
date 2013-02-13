@@ -39,8 +39,8 @@ public class Main {
         final int dataset = 104;
 //        final String sample = "ecoli";
 //        int[] in = {1,2,3,4,5,6,7}, out = new int[]{8};
-        final String sample = "haberman";
-        int[] in = {0,1,2}, out = new int[]{3};
+        final String sample = "ecoli";
+        int[] in = {1,2,3,4,5,6,7}, out = new int[]{8};
         final String datagen = sample;
         
 //        DbSamples dbSamples = new DbSamples(getDbClient());
@@ -49,9 +49,9 @@ public class Main {
         final float[][][] tdata = 
                 neur.util.Arrf.normaliseMinmax(
                 
-                new Sampler(){{EVEN_OUT_CL_DISTRIB=0;}}
+                new Sampler(){{EVEN_OUT_CL_DISTRIB=1;}}
                 .extractSample(
-                new DiskIO().loadCSV("/home/paavoto/src/neur2/src_copy/data/MATLAB/"+sample+".data","(,\\s*|,?s+)"), 
+                new DiskIO().loadCSV("/home/paavoto/src/neur2/src_copy/data/MATLAB/"+sample+".data","(,\\s*|,?\\s+)"), 
                 in, out))
                 ;
                 
@@ -62,18 +62,18 @@ public class Main {
         {{
                 NNW_AFUNC = ActivationFunction.Types.AFUNC_TANH;
                 NNW_AFUNC_PARAMS = new float[]{ 3f };
-                MODE = TrainMode.SUPERVISED_ONLINE_MODE;
-                NNW_DIMS = new int[]{tdata[0][0].length, 1,1,1, tdata[0][1].length};
+                MODE = TrainMode.SUPERVISED_MINIBATCH;
+                NNW_DIMS = new int[]{tdata[0][0].length, 12,12, tdata[0][1].length};
 
                 L = new neur.learning.learner.
                         //BackPropagation();
                         ElasticBackProp();
-                LEARNING_RATE_COEF = 0.1f;
+                LEARNING_RATE_COEF = 0.01f;
                 DYNAMIC_LEARNING_RATE = true;
                 TRG_ERR = 1e-9f;
                 TEACH_MAX_ITERS = 6000;
-                DIVERGENCE_PRESUMED = Math.min(Math.max(400, TEACH_MAX_ITERS / 2), 2000);
-                STOCHASTIC_SEARCH_ITERS = 100;
+                DIVERGENCE_PRESUMED = Math.min(Math.max(400, TEACH_MAX_ITERS / 2), 1000);
+                STOCHASTIC_SEARCH_ITERS = 0;
 
                 DATASET_SLICING = Dataset.Slicing.RandomDueClassification;
                 D = new Dataset()

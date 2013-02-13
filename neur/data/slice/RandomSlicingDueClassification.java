@@ -62,8 +62,11 @@ public class RandomSlicingDueClassification {
             int[] ji = deflatInd(testSetDs, offset);
             int j = ji[0],  i = ji[1];
             float[] classItem = classDistributions[j][i];
+            int trials = 0;
             for(;;)
             {
+                if (trials++ > data.length * 20)
+                    throw new RuntimeException("Can't slice data for classification");
                 k = (int)(Math.random() * data.length);
                 if (data[k][1][j] != classItem[0])
                     continue;

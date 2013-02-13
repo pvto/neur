@@ -30,6 +30,7 @@ public class LearnParams<T extends NeuralNetwork, U extends LearningAlgorithm>
     public U L;
     public float LEARNING_RATE_COEF = 0.5f;    
     public TrainMode MODE;
+    public int MINIBATCH_SIZE = 10;
     public int STOCHASTIC_SEARCH_ITERS = 100;
     public int TEACH_MAX_ITERS = 1000;
     public boolean DYNAMIC_LEARNING_RATE = true;
@@ -51,6 +52,7 @@ public class LearnParams<T extends NeuralNetwork, U extends LearningAlgorithm>
         p.L = L==null ? null : (U)L.copy();
         p.LEARNING_RATE_COEF = LEARNING_RATE_COEF;
         p.MODE = MODE;
+        p.MINIBATCH_SIZE = MINIBATCH_SIZE;
         p.STOCHASTIC_SEARCH_ITERS = STOCHASTIC_SEARCH_ITERS;
         p.TEACH_MAX_ITERS = TEACH_MAX_ITERS;
         p.DYNAMIC_LEARNING_RATE = DYNAMIC_LEARNING_RATE;

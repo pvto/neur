@@ -122,7 +122,7 @@ public class Teachers {
                 break;
             }
             LearnRecord.Item item = r.createItem();
-            Trainres tres = p.D.TRAIN.trainEpoch(nnw, p.L, p.MODE, new Object[]{k});
+            Trainres tres = p.D.TRAIN.trainEpoch(nnw, p.L, p.MODE, new Object[]{k, p.MINIBATCH_SIZE});
             
             if (Float.isNaN(tres.mse))
             {

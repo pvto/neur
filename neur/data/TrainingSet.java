@@ -47,6 +47,7 @@ public class TrainingSet implements Serializable {
             res.errorTerms = new float[nnw.outv().length];
             res.mse = 0f;
         }
+        int k = 0;
         for(float[][] d : set)
         {
             float[] outf = nnw.feedf(d[0]);
@@ -63,6 +64,16 @@ public class TrainingSet implements Serializable {
                 {
                     L.learn(nnw, errors, params);
                 }
+                else if (mode == TrainMode.SUPERVISED_MINIBATCH)
+                {
+                    if (k == set.size() - 1 || k % (int)params[1] == 0)
+                    {
+                        float tmp = res.mse;
+                        L.learn(nnw, errors, params);
+                        res.mse = tmp + res.mse / (int)params[1];
+                    }
+                }
+                k++;
             }
         }
         if (mode == TrainMode.SUPERVISED_BATCH_MODE)

@@ -46,7 +46,8 @@ public class Sampler {
                         real[j] = false;
                         break;
                     }
-                    else if (!cols[j].matches("-?\\d+(\\.0*)?") || Long.parseLong(cols[j]) > DISCR_DATA_UPPER_THRESHOLD)
+                    else if (!cols[j].matches("-?\\d+(\\.0*)?") 
+                            || Long.parseLong(cols[j].replaceFirst("\\..*", "")) > DISCR_DATA_UPPER_THRESHOLD)
                     {
                         integral[j] = false;
                     }
