@@ -60,35 +60,64 @@ public interface Log {
         public static Map<String,Log> fileLogs = new ConcurrentHashMap<String,Log>();
         private static List<OutputStream> outs = new ArrayList<OutputStream>();
         private static final Object lock = new Object();
+        private static long time = System.currentTimeMillis();
+        private static void flush(boolean force) throws IOException
         {
+            long next = System.currentTimeMillis();
+            if (!force && next - time < 1000L)
+                return;
+            synchronized(file.class)
+            {
+                for(OutputStream out : outs)
+                    out.flush();
+            }
+            time = next;
+        }
+        private static void close() throws IOException
+        {
+            for (int i = 0; i < outs.size();) {
+                outs.remove(0).close();
+            }
+        }
+        private static int init = 0;
+        private static void init()
+        {
+            if (init++ > 0)
+                return;
             Runnable logflush = new Runnable()
             {
                 @Override
                 public void run() {
-                    long time = System.currentTimeMillis();
                     for(;;)
                     {
                         try {
-                            System.out.print("1");
                             synchronized(lock)
                             {
                                 lock.wait(15000L);
                             }
-                            System.out.print("2");
-                            long next = System.currentTimeMillis();
-                            if (next - time < 1000L)
-                                continue;
-                            for(OutputStream out : outs)
-                                out.flush();
-                            System.out.print("3");
-                            time = next;
+                            flush(false);
                         } catch (InterruptedException | IOException e) {
                             e.printStackTrace();
                         }
                     }
                 }
             };
-            //new Thread(logflush).start();
+            Thread flush = new Thread(logflush);
+            flush.setDaemon(true);
+            flush.setName("neur-log");
+            flush.start();
+            Runnable fine = new  Runnable()
+            {
+                public void run()
+                {
+                    try { 
+                        flush(true);
+                    } catch(Exception ex)
+                    { ex.printStackTrace(); }
+                    System.out.println(":fine");
+                }
+            };
+            Runtime.getRuntime().addShutdownHook(new Thread(fine));
         }
         private static void nfy()
         {
@@ -98,8 +127,9 @@ public interface Log {
         }
         public static synchronized Log          bind(String filename)
         {
-            filename = new File(filename).getAbsolutePath();
-            Log log = fileLogs.get(filename);
+            init();
+            final String filename_ = new File(filename).getAbsolutePath();
+            Log log = fileLogs.get(filename_);
             if (log != null) 
                 return log;
             
@@ -109,7 +139,7 @@ public interface Log {
                 private OutputStream out;
                 {
                     try {
-                        out = new BufferedOutputStream(new FileOutputStream(new File("gen-srch.log"), true));
+                        out = new BufferedOutputStream(new FileOutputStream(new File(filename_), true));
                         outs.add(out);
                     } 
                     catch(IOException e) { e.printStackTrace(); }
@@ -122,7 +152,7 @@ public interface Log {
                     try {
                         out.write(df.format(new Date()).getBytes());
                         out.write(s.getBytes());  out.write("\r\n".getBytes());
-                                            nfy();
+                        nfy();
                     }
                     catch (IOException ex) {
                         ex.printStackTrace();

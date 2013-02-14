@@ -4,6 +4,7 @@ package neur.auto.routine;
 import annot.Stateless;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -255,6 +256,7 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
     {
         log.log("evaluate fitness h%d L%s ", x.p.NNW_DIMS[1], x.p.L.getClass());
         
+        int check = 0;
         while(x.p.getNumberOfPendingTrainingSets(x.lrec) > 0)
         {
             // TODO: this could be remote with forkjoin!            
@@ -265,6 +267,11 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
                 Thread.sleep(20);
             } catch (Exception e) {
             }
+            if (check++ > 20 && x.p.getNumberOfPendingTrainingSets(x.lrec) == x.p.NUMBER_OF_TRAINING_SETS)
+            {
+                log.log("no result");
+                return;
+            }
         }
         x.lrec.aggregateResults();
         c.putFitness(x.lrec);
@@ -273,9 +280,9 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
 
     
     private static class Predator {
-        double meek = 1.5;
+        double meek = 2;
         LearnParams L = new LearnParams(){{
-            NNW_DIMS = new int[]{3,12,2};
+            NNW_DIMS = new int[]{9,12,2};
             CF = new Fast1Of2Classifier();
             L = new ElasticBackProp();
             STOCHASTIC_SEARCH_ITERS = 600;
@@ -300,7 +307,7 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
         float[] observe(Specimen x)
         {   // gives an observation of a prey from the predator's point of view
             return new float[]{
-                    x.p.NNW_DIMS[1],
+                    x.p.NNW_DIMS[1], x.p.NNW_DIMS.length - 2,
                     x.p.STOCHASTIC_SEARCH_ITERS,
                     x.p.MODE.isSupervised()?0f:1f, x.p.LEARNING_RATE_COEF,
                     x.p.NNW_AFUNC==1?1f:0f, x.p.NNW_AFUNC==3?1f:0f, x.p.NNW_AFUNC==4?1f:0f,
@@ -328,8 +335,14 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
             float[] in = observe(prey);
             if (readyToAssess())
             {
+                try{
                 if (preyLooksHealthy(in))
                     return ret;
+                }catch(Exception ex)
+                {
+                    log.err("in: " + Arrays.toString(in), ex);
+                    log.log("dims: " + Arrays.toString(L.NNW_DIMS));
+                }
             }
             Object[] preyHealth = chase(prey);
             if (preyHealth[0] == null)
