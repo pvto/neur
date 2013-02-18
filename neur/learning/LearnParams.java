@@ -6,6 +6,7 @@ import java.util.Arrays;
 import neur.NeuralNetwork;
 import neur.data.Dataset;
 import neur.data.TrainMode;
+import neur.learning.fit.TrainTestStability;
 import neur.struct.ActivationFunction;
 
 /**
@@ -36,6 +37,7 @@ public class LearnParams<T extends NeuralNetwork, U extends LearningAlgorithm>
     public boolean DYNAMIC_LEARNING_RATE = true;
     public float TRG_ERR = 0.01f;
     public int DIVERGENCE_PRESUMED = 1000;
+    public LRecFitness FIT_FUNC = new TrainTestStability();
 
     public LearnParams copy()
     {
@@ -58,6 +60,7 @@ public class LearnParams<T extends NeuralNetwork, U extends LearningAlgorithm>
         p.DYNAMIC_LEARNING_RATE = DYNAMIC_LEARNING_RATE;
         p.TRG_ERR = TRG_ERR;
         p.DIVERGENCE_PRESUMED = DIVERGENCE_PRESUMED;
+        p.FIT_FUNC = FIT_FUNC;
         return p;
     }
 

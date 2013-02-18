@@ -107,12 +107,12 @@ public class LearnRecord<T extends NeuralNetwork> implements Serializable {
         varianceBestIteration = vars[3];
         averageTotalIterations = avg[4];
         varianceTotalIterations = vars[4];
-        averageStochSearchDuration = avg[5];
-        varianceStochSearchDuration = vars[5];
-        averageSearchDuration = avg[6];
-        varianceSearchDuration = vars[6];
-        averageFitness = avg[7];
-        varianceFitness = vars[7];
+        averageStochSearchDuration = avg[6];
+        varianceStochSearchDuration = vars[6];
+        averageSearchDuration = avg[7];
+        varianceSearchDuration = vars[7];
+        averageFitness = avg[8];
+        varianceFitness = vars[8];
         
         for (int i = 0; i < o; i++)
         {
@@ -126,7 +126,7 @@ public class LearnRecord<T extends NeuralNetwork> implements Serializable {
     
     public static class Item<T extends NeuralNetwork>
     {
-        private LearnRecord<T> L;
+        public LearnRecord<T> L;
         private Item(LearnRecord<T> L)
         { 
             this.L = L;
@@ -192,7 +192,7 @@ public class LearnRecord<T extends NeuralNetwork> implements Serializable {
             }
             
             Item best = L.bestItem;
-            fitness = (float)testsetCorrect + (1f / (1f + (float)trainsetCorrect));
+            fitness = L.p.FIT_FUNC.fitness(this);
             if (best == null || fitness > best.fitness)
             {
                 L.bestItem = this;

@@ -33,7 +33,7 @@ public class Dataset implements Serializable {
  
     
     
-    private SystematicSlicing sysl;
+    private transient SystematicSlicing sysl;
     
     
     public void initTrain_Test_Sets(int testSetSize, final Slicing slicing)
@@ -68,6 +68,7 @@ public class Dataset implements Serializable {
         D.DATASET = DATASET;
         D.SAMPLE = SAMPLE;
         D.data = data;
+        D.istest = (BitSet)istest.clone();
         return D;
     }
     
