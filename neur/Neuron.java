@@ -14,7 +14,9 @@ public class Neuron implements Serializable {
 
     public Neuron() {}
     public Neuron(int act) { this.activationFunction = act;  ACT(); }
-    public Neuron(ActivationFunction f) { this.ACT = f;  this.activationParams = f.getParameters(1); }
+    public Neuron(ActivationFunction f) { 
+        this.activationFunction = f.getType();
+        this.ACT = f;  this.activationParams = f.getParameters(1); }
 
     public Neuron copy()
     {

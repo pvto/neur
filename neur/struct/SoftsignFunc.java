@@ -3,7 +3,7 @@ package neur.struct;
 import neur.struct.ActivationFunction.ActivationFunctionN;
 
 public class SoftsignFunc extends ActivationFunctionN {
-
+    public int getType() { return Types.AFUNC_SOFTSIGN; }
 
     @Override
     public float get(float val)

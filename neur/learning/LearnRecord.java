@@ -24,6 +24,7 @@ public class LearnRecord<T extends NeuralNetwork> implements Serializable {
     public LearnParams p;
     /** this tracks the best achieved network */
     public T best;
+    public T current;
     public Item bestItem = null;
     public List<Item> items = new ArrayList<Item>();
     public long timestamp = 0,

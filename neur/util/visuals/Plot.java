@@ -1,4 +1,4 @@
-package neur;
+package neur.util.visuals;
 
 import java.awt.Color;
 import java.awt.Graphics2D;

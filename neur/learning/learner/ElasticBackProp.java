@@ -33,8 +33,8 @@ public final class ElasticBackProp extends BackPropagation {
     {
         initLayer(layer, W);
         for (int i = 0; i < LRi.length; i++)
-            for(int j = 0; j < W.length; j++)
-                data[layer][j][i].gradient += Pj_tmp[j + 1] * LRi[i].activation;
+            for(int j = 0; j < W[i].length; j++)
+                data[layer][i][j].gradient += Pj_tmp[j] * LRi[i].activation;
 
     }
 
@@ -44,13 +44,13 @@ public final class ElasticBackProp extends BackPropagation {
         for (int lr = n.weights.length - 2; lr >= 0; lr--)
             for (int i = 0; i < n.layers[lr].length; i++)
                 for(int j = 0; j < n.weights[lr].length; j++)
-                    resilientUpdate(n, lr, j, i);
+                    resilientUpdate(n, lr, i, j);
     }
 
     
-    private void resilientUpdate(MLP n, int lr, int j, int i)
+    private void resilientUpdate(MLP n, int lr, int i, int j)
     {
-        Retained param = this.data[lr][j][i];
+        Retained param = this.data[lr][i][j];
         int gradientSignChange = sign(param.prevGrad * param.gradient);
 
         float weightChange = 0f;
