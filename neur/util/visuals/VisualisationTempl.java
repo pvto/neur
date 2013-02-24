@@ -2,6 +2,7 @@
 package neur.util.visuals;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Graphics;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -21,18 +22,30 @@ public abstract class VisualisationTempl {
         fr.setLayout(new BorderLayout());
         final JPanel panel = new JPanel()
         {
-
+            long chg = 0;
+            double fps = 0;
             @Override
-            protected void paintComponent(Graphics g) {
+            protected void paintComponent(Graphics g)
+            {
                 long start = System.currentTimeMillis();
                 super.paintComponent(g);
-                if (rec.current != null)
+                if (rec.current == null)
+                    return;
+                g.clearRect(0, 0, w, h);
+                try
                 {
-                    g.clearRect(0, 0, w, h);
                     visualise(rec, g, 0, 0, fr.getWidth(), fr.getHeight());
+                } catch(Exception ex) { ex.printStackTrace(); }
+                long end = System.currentTimeMillis();
+                long time = (end-start);
+                g.setColor(Color.green);
+                if (end - chg > 3000)
+                {
+                    fps = 1000.0/time;
+                    chg = end;
                 }
-                long time = (System.currentTimeMillis()-start);
-                System.out.println(getClass().getSimpleName() + " repaint " + time + "ms");
+                char[] ch = String.format("%.2ffps", fps).toCharArray();
+                g.drawChars(ch, 0, ch.length, 1, 20);
                 if (time > 40L)
                 {
                     optimise += 1.0;
@@ -40,8 +53,10 @@ public abstract class VisualisationTempl {
                 else
                 {
                     optimise *= 0.95;
+                    if (optimise < 1.0)
+                        optimise = 1.0;
                 }
-                optimise = Math.max(1.0, optimise);
+                optimise = optimise;
             }
             
         };
@@ -55,7 +70,7 @@ public abstract class VisualisationTempl {
                 fr.setVisible(true);
             }
         };
-        updt = new Runnable(){public void run(){ for(;;){sleep((long)(1000/updateFrequency));fr.repaint();}}};
+        updt = new Runnable(){public void run(){ for(;;){sleep((long)(1000.0/updateFrequency));fr.repaint();}}};
         return (T)this;
     }
     

@@ -2,64 +2,19 @@
 package neur.util.visuals;
 
 import java.awt.*;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
 import neur.MLP;
 import neur.Neuron;
 import neur.learning.LearnRecord;
-import neur.struct.SigmoidalFunc;
 
-public class MLPVisualisation {
+public class MLPVisualisation extends VisualisationTempl {
 
     
     public MLPVisualisation(){}
     
-    private LearnRecord rec;
-    private Runnable init;
-    private Runnable updt;
-    
-    public MLPVisualisation createFrame(final LearnRecord rec, final int w, final int h, final int updateFrequency)
+   
+    public void visualise(LearnRecord rec, Graphics g, int x0, int y0, int width, int height)
     {
-        final JFrame fr = new JFrame();
-        fr.setLayout(new BorderLayout());
-        final JPanel panel = new JPanel()
-        {
-
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                if (rec.current != null)
-                {
-                    g.clearRect(0, 0, w, h);
-                    new MLPVisualisation().visualise((MLP)rec.current, g, 0, 0, fr.getWidth(), fr.getHeight());
-                }
-            }
-            
-        };
-        fr.add(panel, BorderLayout.CENTER);
-        fr.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        init = new Runnable()
-        {
-            public void run()
-            {
-                fr.setSize(w,h);
-                fr.setVisible(true);
-            }
-        };
-        updt = new Runnable(){public void run(){ for(;;){sleep(1000/updateFrequency);fr.repaint();}}};
-        return this;
-    }
-    
-    public MLPVisualisation run()
-    {
-        javax.swing.SwingUtilities.invokeLater(init);
-        new Thread(updt).start();
-        return this;
-    }
-    
-    
-    public void visualise(MLP net, Graphics g, int x0, int y0, int width, int height)
-    {
+        MLP net = (MLP)rec.current;
         Graphics2D g2 = (Graphics2D)g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
@@ -113,43 +68,4 @@ public class MLPVisualisation {
     
     
     
-    
-    private static void sleep(long t)
-    {
-        try {
-            Thread.sleep(t);
-        } catch (Exception e) {
-        }
-    }
-
-    
-    public static void main(String[] args) 
-    {
-        final MLP mlp = new MLP(new int[]{3,80,2}, new SigmoidalFunc());
-        final JFrame fr = new JFrame();
-        fr.setLayout(new BorderLayout());
-        final int w = 800, h = 600;
-        final JPanel panel = new JPanel()
-        {
-
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                g.clearRect(0, 0, w, h);
-                new MLPVisualisation().visualise(mlp, g, 0, 0, fr.getWidth(), fr.getHeight());
-            }
-            
-        };
-        fr.add(panel, BorderLayout.CENTER);
-        fr.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        Runnable r = new Runnable()
-        {
-            public void run()
-            {
-                fr.setSize(w,h);
-                fr.setVisible(true);
-            }
-        };
-        javax.swing.SwingUtilities.invokeLater(r);
-    }
 }

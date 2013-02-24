@@ -8,9 +8,14 @@ import neur.util.Arrf;
 
 public class ClfVisualisation extends VisualisationTempl {
 
+    public Color[] COL = new Color[]{Color.BLUE,Color.RED,Color.GREEN,Color.GRAY,Color.MAGENTA,Color.YELLOW,
+            Color.BLACK,Color.PINK,Color.ORANGE,Color.CYAN,Color.DARK_GRAY};
+
     
     public void visualise(LearnRecord rec, Graphics g, int x0, int y0, int width, int height)
     {
+        if (rec.best == null)
+            return;
         Graphics2D g2 = (Graphics2D)g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
@@ -27,8 +32,6 @@ public class ClfVisualisation extends VisualisationTempl {
                 dy1 = Arrf.min(Y),
                 dy2 = Arrf.max(Y)
                 ;
-        Color[] COL = new Color[]{Color.BLUE,Color.RED,Color.GREEN,Color.GRAY,Color.MAGENTA,Color.YELLOW,
-            Color.BLACK,Color.PINK,Color.ORANGE,Color.CYAN,Color.DARK_GRAY};
 
         for (double u = xs; u < xe; u += optimise) {
             for (double v = ys; v < ye; v += optimise)
@@ -37,7 +40,7 @@ public class ClfVisualisation extends VisualisationTempl {
                 double y = (dy2 - dy1) * (v / (double)(ye - ys));
                 float[] data = new float[] {(float)x,(float)y};
                 g2.setColor(COL[getCol(COL, rec, data)]);
-                g2.drawLine((int)u,(int)v,(int)optimise,(int)optimise);
+                g2.drawLine((int)u,(int)v,(int)(u+optimise),(int)(v+optimise));
             }
         }
         float[][][] data = rec.p.D.data;
@@ -54,6 +57,7 @@ public class ClfVisualisation extends VisualisationTempl {
             g2.setColor(COL[max]);
             g2.fillOval((int)x - 1, (int)y - 1, 2, 2);
         }
+        System.out.println("drawn");
     }
 
     private int getCol(Color[] COL, LearnRecord rec, float[] data)
