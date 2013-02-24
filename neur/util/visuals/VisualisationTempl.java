@@ -3,6 +3,7 @@ package neur.util.visuals;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -14,11 +15,14 @@ public abstract class VisualisationTempl {
     private Runnable init;
     private Runnable updt;
     public double optimise = 1.0;
+    public JFrame frame;
+    public int w,h;
     
     public <T extends VisualisationTempl> T 
             createFrame(final LearnRecord rec, final int w, final int h, final double updateFrequency)
     {
-        final JFrame fr = new JFrame();
+        this.w = w;  this.h = h;
+        final JFrame fr = frame = new JFrame();
         fr.setLayout(new BorderLayout());
         final JPanel panel = new JPanel()
         {
@@ -48,11 +52,11 @@ public abstract class VisualisationTempl {
                 g.drawChars(ch, 0, ch.length, 1, 20);
                 if (time > 40L)
                 {
-                    optimise += 1.0;
+                    optimise *= 2.0;
                 }
                 else
                 {
-                    optimise *= 0.95;
+                    optimise -= 1.0;
                     if (optimise < 1.0)
                         optimise = 1.0;
                 }
@@ -81,6 +85,23 @@ public abstract class VisualisationTempl {
         return (T)this;
     }
     
+    public <T extends VisualisationTempl> T setScreenPos(String pos)
+    {
+        String CONF = "\\d\\d\\s+\\d\\d";
+        if (!pos.matches(CONF))
+            throw new RuntimeException("Give screen position in form [XY] [xy] where X,Y are grid width and height and x,y frame x,y in grid");
+        char[] wh = pos.split("\\s+")[0].toCharArray();
+        char[] pos_ = pos.split("\\s+")[1].toCharArray();
+        int xd = (int)(wh[0] - '0');
+        int yd = (int)(wh[1] - '0');
+        int x = (int)(pos_[0] - '0');
+        int y = (int)(pos_[1] - '0');
+        Dimension d = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+        int xstep = (d.width - w) / Math.max(1,xd - 1);
+        int ystep = (d.height - h) / Math.max(1, yd - 1);
+        frame.setBounds((x - 1)*xstep, (y - 1)*ystep, w, h);
+        return (T)this;
+    }
     
     public abstract void visualise(LearnRecord rec, Graphics g, int x0, int y0, int width, int height);
 

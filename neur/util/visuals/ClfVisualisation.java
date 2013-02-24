@@ -57,7 +57,6 @@ public class ClfVisualisation extends VisualisationTempl {
             g2.setColor(COL[max]);
             g2.fillOval((int)x - 1, (int)y - 1, 2, 2);
         }
-        System.out.println("drawn");
     }
 
     private int getCol(Color[] COL, LearnRecord rec, float[] data)
