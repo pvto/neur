@@ -5,6 +5,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import neur.learning.LearnRecord;
@@ -17,6 +19,7 @@ public abstract class VisualisationTempl {
     public double optimise = 1.0;
     public JFrame frame;
     public int w,h;
+    public Map<String,Object> parameters = new HashMap<String,Object>();
     
     public <T extends VisualisationTempl> T 
             createFrame(final LearnRecord rec, final int w, final int h, final double updateFrequency)
@@ -50,7 +53,7 @@ public abstract class VisualisationTempl {
                 }
                 char[] ch = String.format("%.2ffps", fps).toCharArray();
                 g.drawChars(ch, 0, ch.length, 1, 20);
-                if (time > 40L)
+                if (time > 80L)
                 {
                     optimise *= 2.0;
                 }
@@ -100,6 +103,12 @@ public abstract class VisualisationTempl {
         int xstep = (d.width - w) / Math.max(1,xd - 1);
         int ystep = (d.height - h) / Math.max(1, yd - 1);
         frame.setBounds((x - 1)*xstep, (y - 1)*ystep, w, h);
+        return (T)this;
+    }
+    
+    public <T extends VisualisationTempl> T setParameter(String key, Object val)
+    {
+        parameters.put(key, val);
         return (T)this;
     }
     
