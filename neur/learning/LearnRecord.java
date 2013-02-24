@@ -23,8 +23,8 @@ public class LearnRecord<T extends NeuralNetwork> implements Serializable {
     
     public LearnParams p;
     /** this tracks the best achieved network */
-    public T best;
-    public T current;
+    public volatile T best;
+    public volatile T current;
     public Item bestItem = null;
     public List<Item> items = new ArrayList<Item>();
     public long timestamp = 0,
@@ -193,7 +193,12 @@ public class LearnRecord<T extends NeuralNetwork> implements Serializable {
             }
             
             Item best = L.bestItem;
-            fitness = (float)testsetCorrect + (1f / (1f + (float)trainsetCorrect));
+            fitness = (testsetCorrect + trainsetCorrect) * 
+                    (1 - Math.max(0.1,
+                    Math.abs((float)testsetCorrect / L.p.D.TEST.set.size() - (float)trainsetCorrect / L.p.D.TRAIN.set.size()))
+                    )
+                    ;
+                    //(float)testsetCorrect + (1f / (1f + (L.p.D.TRAIN.set.size() - (float)trainsetCorrect)));
             if (best == null || fitness > best.fitness)
             {
                 L.bestItem = this;

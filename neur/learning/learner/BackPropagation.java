@@ -26,6 +26,8 @@ public class BackPropagation implements SupervisedLearner<MLP> {
         for(Neuron[] L : nwLayers)
             for(Neuron p : L)
                 p.derivativeActivation();
+
+        beforeBackpropagation(nw, errorTerm, params);
         
         // deltaWij = coef*delta_j*o_i
         //     (for output layer)
@@ -74,6 +76,7 @@ public class BackPropagation implements SupervisedLearner<MLP> {
             // prepare for next layer up
             delta_k = delta_j;
         }
+        afterBackpropagation(nw, errorTerm, params);
     }
 
     protected void updateWeights(float[][] W, Neuron[] LRi, float[] corrections, int layer)
@@ -92,5 +95,16 @@ public class BackPropagation implements SupervisedLearner<MLP> {
     @Override
     public void clear(){} // stateless
 
+    protected void beforeBackpropagation(MLP nw, float[] errorTerm, Object[] params) {}
+    
+    protected void afterBackpropagation(MLP nw, float[] errorTerm, Object[] params)
+    {
+        // experimental: kill NaN/Infinite weights
+        for(float[][] lr : nw.weights)
+            for(float[] line : lr)
+                for(int i = 0; i < line.length; i++)
+                    if (Float.isNaN(line[i]) || Float.isInfinite(line[i]))
+                            line[i] = (float)Math.random() - 0.5f;
+    }
 
 }

@@ -180,7 +180,7 @@ public class Teachers {
             {
                 resBest = tres;
                 sdIncreasing = 0;
-                System.out.println(String.format("before %s a %s  %d", Arrays.toString(tresp.errorTerms), Arrays.toString(tres.errorTerms), totalIterations));
+                //System.out.println(String.format("before %s a %s  %d", Arrays.toString(tresp.errorTerms), Arrays.toString(tres.errorTerms), totalIterations));
             }
             sdPrev = tres.mse;
         }

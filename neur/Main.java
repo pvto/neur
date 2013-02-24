@@ -44,41 +44,43 @@ public class Main {
 //        DbSamples dbSamples = new DbSamples(getDbClient());
 //        final float[][][] tdata = createSample();
 //        final float[][][] tdata = dbSamples.loadSample(dataset, sample);
-        final float[][][] tdata = 
-                neur.util.Arrf.normaliseMinmax(
-                
-                new Sampler(){{EVEN_OUT_CL_DISTRIB=0;}}
-                .extractSample(
-                new DiskIO().loadCSV("/media/KINGSTON/nlg/data/MATLAB/"+sample+".data","(,\\s*|,?\\s+)"), 
-                in, out))
-                ;
-//        final float[][][] tdata = new float[60][][];
-//        for (int i = 0; i < tdata.length; i++)
-//        {
-//            double x = (double)i / (double)tdata.length;
-//            double y =  Math.sin(x * 11);
-//            double add = (0.1+Math.random())*0.2 * (Math.random()>0.5?1.0:-1.0);
-//            tdata[i] = 
-//                    new float[][] {{(float)x,(float)(y + add)},  {add>0?1f:0f,add>0?0f:1f}};
-//        }
+//        final float[][][] tdata = 
+//                neur.util.Arrf.normaliseMinmax(
+//                
+//                new Sampler(){{EVEN_OUT_CL_DISTRIB=0;}}
+//                .extractSample(
+//                new DiskIO().loadCSV("/media/KINGSTON/nlg/data/MATLAB/"+sample+".data","(,\\s*|,?\\s+)"), 
+//                in, out))
+//                ;
+        final float[][][] tdata = new float[200][][];
+        for (int i = 0; i < tdata.length; i++)
+        {
+            double x = (double)i / (double)tdata.length;
+            double y =  Math.sin(x * 11);
+            double tan = Math.cos(x * 11);
+            double add = 0.4 *  (Math.random()>0.5?1.0:-1.0);
+                    //(0.1+Math.random())*0.2 * (Math.random()>0.5?1.0:-1.0);
+            tdata[i] = 
+                    new float[][] {{(float)x,(float)(y + add),(float)tan},  {add>0?1f:0f,add>0?0f:1f}};
+        }
         log.log("loaded dataset %s (in,out):(%d,%d) size %d", sample, tdata[0][0].length, tdata[0][1].length, tdata.length);
         LearnParams<MLP,ElasticBackProp> p = new LearnParams()
         {{
-                NNW_AFUNC = ActivationFunction.Types.AFUNC_SOFTSIGN;
+                NNW_AFUNC = ActivationFunction.Types.AFUNC_TANH;
                 NNW_AFUNC_PARAMS = new float[]{ 3f };
                 MODE = TrainMode.SUPERVISED_ONLINE_MODE;
-                NNW_DIMS = new int[]{tdata[0][0].length, 20, tdata[0][1].length};
+                NNW_DIMS = new int[]{tdata[0][0].length, 24, tdata[0][1].length};
 
                 L = new neur.learning.learner.
-                        
-                        BackPropagation();
+                        //BackPropagation();
                         //ElasticBackProp();
+                        MomentumEBP();
                 LEARNING_RATE_COEF = 0.1f;
-                DYNAMIC_LEARNING_RATE = true;
+                DYNAMIC_LEARNING_RATE = false;
                 TRG_ERR = 1e-9f;
-                TEACH_MAX_ITERS = 8000;
+                TEACH_MAX_ITERS = 48000;
                 DIVERGENCE_PRESUMED = Math.min(Math.max(400, TEACH_MAX_ITERS / 2), 24000);
-                STOCHASTIC_SEARCH_ITERS = 0;
+                STOCHASTIC_SEARCH_ITERS = 100;
 
                 DATASET_SLICING = Dataset.Slicing.RandomDueClassification;
                 D = new Dataset()
@@ -97,8 +99,8 @@ public class Main {
         {
             p.nnw = new MLP(p.NNW_DIMS, ActivationFunction.Types.create(p.NNW_AFUNC, p.NNW_AFUNC_PARAMS));
             LearnRecord<MLP> r = new LearnRecord<MLP>(p);
-            new ClfVisualisation().createFrame(r, 800, 600, 0.5).run();
-            new MLPVisualisation().createFrame(r, 800, 600, 15).run();
+            new ClfVisualisation(){{optimise=4.0;}}.createFrame(r, 500, 400, 0.5).setScreenPos("21 21").run();
+            new MLPVisualisation().createFrame(r, 700, 600, 15).run();
             runTest(p, r);
         }
         cli().close();
@@ -111,7 +113,6 @@ public class Main {
     private static void runTest(LearnParams p, LearnRecord<MLP> r) throws IOException, SQLException
     {
         new Teachers().tabooBoxAndIntensification(p, r, log);
-        
 //        String filename = "mlp" + File.separator 
 //                +p.D.DATASET+"-"+p.D.SAMPLE+"-hid"+(r.best.layers[1].length-1)+"-"
 //                +ActivationFunction.Types.asString(p.NNW_AFUNC).substring(0,4)
