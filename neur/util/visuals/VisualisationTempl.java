@@ -20,6 +20,7 @@ public abstract class VisualisationTempl {
     public JFrame frame;
     public int w,h;
     public Map<String,Object> parameters = new HashMap<String,Object>();
+    public volatile boolean doRun = true;
     
     public <T extends VisualisationTempl> T 
             createFrame(final LearnRecord rec, final int w, final int h, final double updateFrequency)
@@ -77,7 +78,7 @@ public abstract class VisualisationTempl {
                 fr.setVisible(true);
             }
         };
-        updt = new Runnable(){public void run(){ for(;;){sleep((long)(1000.0/updateFrequency));fr.repaint();}}};
+        updt = new Runnable(){public void run(){ while(doRun){sleep((long)(1000.0/updateFrequency));fr.repaint();}}};
         return (T)this;
     }
     

@@ -66,23 +66,26 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
         eve.p = A.p.copy();
         eve.lrec = new LearnRecord(eve.p);
         // pick hidden layer dimension from between parents'
-        int dim = Math.min(A.p.NNW_DIMS[1], B.p.NNW_DIMS[1]);
-        int dim2 = Math.max(A.p.NNW_DIMS[1], B.p.NNW_DIMS[1]);
-        eve.p.NNW_DIMS[1] = dim + (int) ((dim2 - dim) * Math.random());
-        // pick hidden layer count from between parents'
-        int hc = Math.min(A.p.NNW_DIMS.length - 2, B.p.NNW_DIMS.length - 2);
-        int hc2 = Math.max(A.p.NNW_DIMS.length - 2, B.p.NNW_DIMS.length - 2);
-        if (hc2 > hc)
+        if (A.p.NNW_DIMS.length > 2 && B.p.NNW_DIMS.length > 2)
         {
-            int rnd = 1 + (int) (Math.random() * (hc2 - hc));
-            while (rnd * eve.p.NNW_DIMS[1] > eve.p.D.data.length * MAX_DIMENSION_SEARCH_RATIO)
-                rnd--;
-            int[] t = eve.p.NNW_DIMS;
-            eve.p.NNW_DIMS = new int[2 + rnd];
-            eve.p.NNW_DIMS[0] = t[0];
-            eve.p.NNW_DIMS[eve.p.NNW_DIMS.length - 1] = t[t.length - 1];
-            for(int i = rnd; i > 0; i--)
-                eve.p.NNW_DIMS[i] = t[1];
+            int dim = Math.min(A.p.NNW_DIMS[1], B.p.NNW_DIMS[1]);
+            int dim2 = Math.max(A.p.NNW_DIMS[1], B.p.NNW_DIMS[1]);
+            eve.p.NNW_DIMS[1] = dim + (int) ((dim2 - dim) * Math.random());
+            // pick hidden layer count from between parents'
+            int hc = Math.min(A.p.NNW_DIMS.length - 2, B.p.NNW_DIMS.length - 2);
+            int hc2 = Math.max(A.p.NNW_DIMS.length - 2, B.p.NNW_DIMS.length - 2);
+            if (hc2 > hc)
+            {
+                int rnd = 1 + (int) (Math.random() * (hc2 - hc));
+                while (rnd * eve.p.NNW_DIMS[1] > eve.p.D.data.length * MAX_DIMENSION_SEARCH_RATIO)
+                    rnd--;
+                int[] t = eve.p.NNW_DIMS;
+                eve.p.NNW_DIMS = new int[2 + rnd];
+                eve.p.NNW_DIMS[0] = t[0];
+                eve.p.NNW_DIMS[eve.p.NNW_DIMS.length - 1] = t[t.length - 1];
+                for(int i = rnd; i > 0; i--)
+                    eve.p.NNW_DIMS[i] = t[1];
+            }
         }
         // Get randomly genes from the either parent.
         // There are no dominant genes.
@@ -216,9 +219,9 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
                     if (cat.challenge(eve) == 0)
                         continue;
 
-                    new MLPVisualisation().createFrame(eve.lrec, 400, 300, 10).run();
-                    
+                    MLPVisualisation vis = new MLPVisualisation().createFrame(eve.lrec, 400, 300, 10).run();
                     evaluateFitness(eve, c, cat);
+                    vis.doRun = false;
                     population.add(eve);
                     ret.countDown(eve.lrec);
                     // keep the population relatively small with some fit and some random individuals
