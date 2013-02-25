@@ -28,6 +28,7 @@ import neur.util.Arrf;
 import neur.util.Log;
 import neur.util.sdim.SearchDimension;
 import neur.util.sdim.SearchDimension.Parameterised;
+import neur.util.visuals.MLPVisualisation;
 
 /**
  *
@@ -146,7 +147,7 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
         final TopologyFinding<MLP> ret = new TopologyFinding<>(maxOperations);
         
         final Predator cat = new Predator();
-        
+
         Runnable r = new Runnable()
         {
 
@@ -170,18 +171,21 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
                         eve.p = searchSpace.resolveTopologyFromFlattenedIndex(templParams, ind);
                         // treat hidden layer specifically. get it from a square distribution, favoring small hidden layer sizes
                         eve.p.NNW_DIMS[1] = Math.max(1, (int)(eve.p.NNW_DIMS[1] * Math.random()));
-                        // even out to not get too big dimensions
-                        int nh = eve.p.NNW_DIMS.length - 2;
-                        while (nh > 1 && eve.p.NNW_DIMS[1] * nh > eve.p.D.data.length * MAX_DIMENSION_SEARCH_RATIO)
-                            nh--;
-                        if (nh > eve.p.NNW_DIMS.length - 2)
+                        if (eve.p.NNW_DIMS.length > 2)
                         {
-                            int[] t = eve.p.NNW_DIMS;
-                            eve.p.NNW_DIMS = new int[nh + 2];
-                            eve.p.NNW_DIMS[0] = t[0];
-                            eve.p.NNW_DIMS[eve.p.NNW_DIMS.length - 1] = t[t.length - 1];
-                            for(int x = nh; x > 0; x--)
-                                eve.p.NNW_DIMS[x] = t[1];
+                            // even out to not get too big dimensions
+                            int nh = eve.p.NNW_DIMS.length - 2;
+                            while (nh > 1 && eve.p.NNW_DIMS[1] * nh > eve.p.D.data.length * MAX_DIMENSION_SEARCH_RATIO)
+                                nh--;
+                            if (nh > eve.p.NNW_DIMS.length - 2)
+                            {
+                                int[] t = eve.p.NNW_DIMS;
+                                eve.p.NNW_DIMS = new int[nh + 2];
+                                eve.p.NNW_DIMS[0] = t[0];
+                                eve.p.NNW_DIMS[eve.p.NNW_DIMS.length - 1] = t[t.length - 1];
+                                for(int x = nh; x > 0; x--)
+                                    eve.p.NNW_DIMS[x] = t[1];
+                            }
                         }
                         eve.lrec = new LearnRecord(eve.p);
                     }
@@ -212,6 +216,8 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
                     if (cat.challenge(eve) == 0)
                         continue;
 
+                    new MLPVisualisation().createFrame(eve.lrec, 400, 300, 10).run();
+                    
                     evaluateFitness(eve, c, cat);
                     population.add(eve);
                     ret.countDown(eve.lrec);

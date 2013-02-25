@@ -36,7 +36,7 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
             hiddenLayerSize = SearchDimension.create.discrete(1, D.data.length / 3, 1)
                 .setName(Dim.HIDDEN_LR_SIZE),
             
-            hiddenLayerCount = SearchDimension.create.dispersed(1, 2, 3, 4)
+            hiddenLayerCount = SearchDimension.create.dispersed(0, 1, 2, 3, 4)
                 .setName(Dim.HIDDEN_LR_COUNT),
             
             stochasticSearchSize = SearchDimension.create.dispersed(0, 100, 1000)
