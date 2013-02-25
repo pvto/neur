@@ -42,7 +42,7 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
             stochasticSearchSize = SearchDimension.create.dispersed(0, 100, 1000)
                 .setName(Dim.STOCHASTIC_SEARCH_SIZE),
             
-            learningAlgorithm = SearchDimension.create.discrete(0, 16, 1)
+            learningAlgorithm = SearchDimension.create.discrete(0, 15, 1)
                 .setName(Dim.LEARNING_ALGORITHM)
                 .setTargetGenerator(new TargetGenerator() {
                     @Override public Object generate(int index)
