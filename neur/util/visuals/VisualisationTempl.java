@@ -69,7 +69,7 @@ public abstract class VisualisationTempl {
             
         };
         fr.add(panel, BorderLayout.CENTER);
-        fr.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        //fr.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         init = new Runnable()
         {
             public void run()

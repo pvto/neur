@@ -70,20 +70,23 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
         {
             int dim = Math.min(A.p.NNW_DIMS[1], B.p.NNW_DIMS[1]);
             int dim2 = Math.max(A.p.NNW_DIMS[1], B.p.NNW_DIMS[1]);
-            eve.p.NNW_DIMS[1] = dim + (int) ((dim2 - dim) * Math.random());
+            int hidsize = dim + (int) ((dim2 - dim) * Math.random());
+            int hidlayers = eve.p.NNW_DIMS.length - 1;
+            for (int i = 1; i < hidlayers; i++)
+                eve.p.NNW_DIMS[i] = hidsize;
             // pick hidden layer count from between parents'
             int hc = Math.min(A.p.NNW_DIMS.length - 2, B.p.NNW_DIMS.length - 2);
             int hc2 = Math.max(A.p.NNW_DIMS.length - 2, B.p.NNW_DIMS.length - 2);
             if (hc2 > hc)
             {
-                int rnd = 1 + (int) (Math.random() * (hc2 - hc));
-                while (rnd * eve.p.NNW_DIMS[1] > eve.p.D.data.length * MAX_DIMENSION_SEARCH_RATIO)
-                    rnd--;
+                hidlayers = 1 + (int) (Math.random() * (hc2 - hc));
+                while (hidlayers * eve.p.NNW_DIMS[1] > eve.p.D.data.length * MAX_DIMENSION_SEARCH_RATIO)
+                    hidlayers--;
                 int[] t = eve.p.NNW_DIMS;
-                eve.p.NNW_DIMS = new int[2 + rnd];
+                eve.p.NNW_DIMS = new int[2 + hidlayers];
                 eve.p.NNW_DIMS[0] = t[0];
                 eve.p.NNW_DIMS[eve.p.NNW_DIMS.length - 1] = t[t.length - 1];
-                for(int i = rnd; i > 0; i--)
+                for(int i = hidlayers; i > 0; i--)
                     eve.p.NNW_DIMS[i] = t[1];
             }
         }
@@ -173,7 +176,10 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
                         eve = new Specimen();
                         eve.p = searchSpace.resolveTopologyFromFlattenedIndex(templParams, ind);
                         // treat hidden layer specifically. get it from a square distribution, favoring small hidden layer sizes
-                        eve.p.NNW_DIMS[1] = Math.max(1, (int)(eve.p.NNW_DIMS[1] * Math.random()));
+                        int hidlrsize = Math.max(1, (int)(eve.p.NNW_DIMS[1] * Math.random()));
+                        for (int j = 1; j < eve.p.NNW_DIMS.length - 1; j++)
+                            eve.p.NNW_DIMS[j] = hidlrsize;
+                        
                         if (eve.p.NNW_DIMS.length > 2)
                         {
                             // even out to not get too big dimensions
