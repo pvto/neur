@@ -224,7 +224,7 @@ public final class Arrf {
     {
         int[] r = new int[data.length];
         for (int i = 0; i < r.length; i++)
-            r[i] = Integer.parseInt(data[i]);
+            r[i] = (int)Double.parseDouble(data[i]);
         return r;
     }
     public static float[]                   floats(String[] data)
