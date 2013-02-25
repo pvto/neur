@@ -6,6 +6,9 @@ import neur.learning.LearnParams;
 public interface ActivationFunction {
 
     
+    public abstract int getType();
+        
+
     public static final class Types {
         public static final int AFUNC_LINEAR = 0;
         public static final int AFUNC_SIGMOID = 1;

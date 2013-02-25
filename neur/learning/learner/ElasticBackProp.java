@@ -33,8 +33,8 @@ public final class ElasticBackProp extends BackPropagation {
     {
         initLayer(layer, W);
         for (int i = 0; i < LRi.length; i++)
-            for(int j = 0; j < W.length; j++)
-                data[layer][j][i].gradient += Pj_tmp[j + 1] * LRi[i].activation;
+            for(int j = 0; j < W[i].length; j++)
+                data[layer][i][j].gradient += Pj_tmp[j] * LRi[i].activation;
 
     }
 
@@ -43,14 +43,14 @@ public final class ElasticBackProp extends BackPropagation {
     {
         for (int lr = n.weights.length - 2; lr >= 0; lr--)
             for (int i = 0; i < n.layers[lr].length; i++)
-                for(int j = 0; j < n.weights[lr].length; j++)
-                    resilientUpdate(n, lr, j, i);
+                for(int j = 0; j < n.weights[lr][i].length; j++)
+                    resilientUpdate(n, lr, i, j);
     }
 
     
-    private void resilientUpdate(MLP n, int lr, int j, int i)
+    private void resilientUpdate(MLP n, int lr, int i, int j)
     {
-        Retained param = this.data[lr][j][i];
+        Retained param = this.data[lr][i][j];
         int gradientSignChange = sign(param.prevGrad * param.gradient);
 
         float weightChange = 0f;
@@ -82,7 +82,7 @@ public final class ElasticBackProp extends BackPropagation {
             weightChange = sign(param.gradient) * delta;
         }
 
-        n.weights[lr][j][i] += weightChange;
+        n.weights[lr][i][j] += weightChange;
         param.prevWgCh = weightChange;
         param.prevGrad = param.gradient;
         param.gradient = 0;
@@ -103,11 +103,11 @@ public final class ElasticBackProp extends BackPropagation {
         if (!(data[layer] == null || data[layer].length != W.length || data[layer][0].length != W[0].length) )
             return;
         data[layer] = new Retained[W.length][];
-        for (int j = 0; j < data[layer].length; j++)
+        for (int i = 0; i < data[layer].length; i++)
         {
-            data[layer][j] = new Retained[W[j].length];
-            for (int i = 0; i < W[j].length; i++)
-                data[layer][j][i] = new Retained();
+            data[layer][i] = new Retained[W[i].length];
+            for (int j = 0; j < W[i].length; j++)
+                data[layer][i][j] = new Retained();
         }
     }
 

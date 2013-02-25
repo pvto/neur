@@ -1,24 +1,21 @@
 package neur.struct;
 
 public class SigmoidalFunc extends ActivationFunction.ActivationFunctionN {
-
+    public int getType() { return Types.AFUNC_SIGMOID; }
+    
     {
         setParameters(new float[]{3f});
     }
 
     public float get(float val)
     {
+        if (val > 100f)
+            return 1.0f;
+        if (val < -100f)
+            return 0f;
         float activation = 
                 1f
                 / (1f + (float) Math.exp(-params[0] * val));
-        if (activation > 1f) {
-            activation = 1f;
-        }
-        else {
-            if (activation < 0f) {
-                activation = 0f;
-            }
-        }
         return activation;
     }
 

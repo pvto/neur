@@ -42,6 +42,7 @@ public class MLP implements NeuralNetwork, Serializable {
             b.layers[lr] = new Neuron[layers[lr].length];
             for (int j = 0; j < b.layers[lr].length; j++)
             {
+//                if (layers[lr][j] != null)
                 b.layers[lr][j] = layers[lr][j].copy();
             }
             if (lr < weights.length)
@@ -49,7 +50,7 @@ public class MLP implements NeuralNetwork, Serializable {
                 b.weights[lr] = new float[weights[lr].length][];
                 for(int j = 0; j < b.weights[lr].length; j++)
                 {
-                    if (weights[lr] != null && weights[lr][j] != null)
+//                    if (weights[lr] != null && weights[lr][j] != null)
                     b.weights[lr][j] = Arrays.copyOf(weights[lr][j], weights[lr][j].length);
                 }
             }
@@ -80,25 +81,37 @@ public class MLP implements NeuralNetwork, Serializable {
         for (int i = 0; i < layerSizes.length; i++)
         {
             layers[i] = new Neuron[layerSizes[i]];
-            // add bias
-            Neuron p = newNeuronForLayer(i, activationFunction);
-            p.netInput = 1f;
-            setUnit(i,0,p);
         }
         
-        weights = new float[layerSizes.length-1][][];
-        int layer = 0;
-        for (int s : layerSizes)
+        // create units and a bias unit as last to each layer except for the output layer
+        for (int layer = 0; layer < layerSizes.length; layer++)
         {
-            int weightCount = 
-                    (layer < layerSizes.length -1 ? layerSizes[layer + 1] : 1);
-            if (layer < weights.length)
-                weights[layer] = new float[weightCount][];
-            for (int i = 1; i <= s; i++)
+            for (int i = 0; i < layerSizes[layer]; i++)
             {
                 addUnit(layer, i, activationFunction);
             }
-            layer++;
+            if (layer < layerSizes.length - 1)  // bias
+                addUnit(layer, layerSizes[layer], activationFunction)
+                        .netInput = 1f;
+        }
+        weights = new float[layerSizes.length - 1][][];
+        for(int i = 0; i < layerSizes.length - 1; i++)
+        {
+            connect(i, layerSizes[i] + 1, layerSizes[i + 1], activationFunction);
+        }
+    }
+    
+    public void connect(int layer, int unitCount, int nextlayerCount, ActivationFunction activationFunction)
+    {
+        float[][] W = weights[layer] = new float[unitCount][];
+        for(int i = 0; i < W.length; i++)
+        {
+            W[i] = new float[nextlayerCount];
+            for (int j = 0; j < nextlayerCount; j++)
+            {
+                float glorot = preTrainInit(activationFunction, layer);
+                W[i][j] = (float) (Math.random() - 0.5f) * glorot;
+            }
         }
     }
 
@@ -120,38 +133,22 @@ public class MLP implements NeuralNetwork, Serializable {
     {
         Neuron p = newNeuronForLayer(layer, activationFunction);
         setUnit(layer, unit, p);
-        // add weights for connections from existing perceptrons in previous layer to this unit
-        if (layer > 0)
-        {
-            // Glorot & Bengio [2010]
-            float glorot = (float) (Math.sqrt(6.0) 
-                    / Math.sqrt(layers[layer - 1].length + layers[layer].length)) * 2f;
-            if (activationFunction instanceof SigmoidalFunc)
-                glorot *= 4f;
-            float[][] LL = weights[layer - 1];
-            float[] L = new float[layers[layer - 1].length];
-            LL[unit-1] = L;
-            for (int i = 0; i < L.length; i++)
-            {
-                L[i] = (float) (Math.random() - 0.5f) * glorot;
-            }
-        }
-//        // add weights for connections from this layer to existing perceptrons in next layer
-//        if (layer < layers.length - 1)
-//        {
-//            // add weights for connections omitting bias at [0]
-//            for (int i = 0; i < feedWeights[layer].length; i++)
-//            {
-//                float[] L = feedWeights[layer][i];
-//                float[] M = new float[L.length + 1];
-//                System.arraycopy(L, 0, M, 0, L.length);
-//                M[L.length] = (float)Math.random() - 0.5f;
-//                feedWeights[layer][i] = M;
-//            }
-//        }
         return p;
     }
 
+    // Glorot & Bengio [2010]
+    private float preTrainInit(ActivationFunction activationFunction, int layer)
+    {
+        float glorot = 1f;
+        if (layers.length > 3 & layer > 0)
+        {
+            glorot = (float) (Math.sqrt(6.0) 
+                    / Math.sqrt(layers[layer - 1].length + layers[layer].length)) * 2f;
+            if (activationFunction instanceof SigmoidalFunc)
+                glorot *= 4f;
+        }
+        return glorot;
+    }
 
     /** feeds given data to the input layer and propagates */
     @Override
@@ -159,11 +156,11 @@ public class MLP implements NeuralNetwork, Serializable {
     {
         Neuron[] Li = layers[0];
         // feed input
-        // slot 0 contains bias, do not overwrite
+        // slot [n] contains bias, do not overwrite
         for (int i = 0; i < data.length; i++)
         {
-            Li[i+1].netInput = data[i];
-            Li[i+1].activation();
+            Li[i].netInput = data[i];
+            Li[i].activation();
         }
         propagate();
         return getActivation();
@@ -177,14 +174,12 @@ public class MLP implements NeuralNetwork, Serializable {
             Neuron[] Li = layers[layer];
             Neuron[] Lj = layers[layer + 1];
             float[][] feeds = weights[layer];
-            for (int j = 1; j < Lj.length; j++)
+            for (int j = 0; j < feeds[0].length; j++)
             {
-                float sum = 0f;
-                for (int i = 0; i < feeds[j - 1].length; i++)
-                {
-                    sum += Li[i].activation * feeds[j - 1][i];
-                }
-                Lj[j].netInput = sum;
+                float net = 0f;
+                for (int i = 0; i < Li.length; i++)
+                    net += Li[i].activation * feeds[i][j];
+                Lj[j].netInput = net;
                 Lj[j].activation();
             }
         }
@@ -193,10 +188,10 @@ public class MLP implements NeuralNetwork, Serializable {
     public float[] getActivation()
     {
         Neuron[] out = outv();
-        float[] ret = new float[out.length - 1];
-        for(int i = 1; i < out.length; i++)
+        float[] ret = new float[out.length];
+        for(int i = 0; i < out.length; i++)
         {
-            ret[i-1] = out[i].activation;
+            ret[i] = out[i].activation;
         }
         return ret;
     }
@@ -206,8 +201,9 @@ public class MLP implements NeuralNetwork, Serializable {
     public int[] getLayerSizes()
     {
         int[] ret = new int[layers.length];
-        for (int i = 0; i < ret.length; i++)
+        for (int i = 0; i < ret.length - 1; i++)
             ret[i] = layers[i].length - 1;
+        ret[layers.length - 1] = layers[layers.length - 1].length;
         return ret;
     }
     

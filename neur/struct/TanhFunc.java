@@ -3,7 +3,8 @@ package neur.struct;
 import neur.struct.ActivationFunction.ActivationFunctionN;
 
 public class TanhFunc extends ActivationFunctionN {
-
+    public int getType() { return Types.AFUNC_TANH; }
+    
     {
         setParameters(new float[]{3f});
     }

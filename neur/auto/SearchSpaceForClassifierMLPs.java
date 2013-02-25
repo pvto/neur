@@ -8,6 +8,7 @@ import neur.learning.LearnParams;
 import neur.learning.LearningAlgorithm;
 import neur.learning.learner.BackPropagation;
 import neur.learning.learner.ElasticBackProp;
+import neur.learning.learner.MomentumEBP;
 import static neur.struct.ActivationFunction.Types.*;
 import neur.util.sdim.SearchDimension;
 import neur.util.sdim.SearchDimension.Parameterised;
@@ -41,24 +42,45 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
             stochasticSearchSize = SearchDimension.create.dispersed(0, 100, 1000)
                 .setName(Dim.STOCHASTIC_SEARCH_SIZE),
             
-            learningAlgorithm = SearchDimension.create.discrete(0, 3, 1)
+            learningAlgorithm = SearchDimension.create.discrete(0, 16, 1)
                 .setName(Dim.LEARNING_ALGORITHM)
                 .setTargetGenerator(new TargetGenerator() {
                     @Override public Object generate(int index)
                     {
                         switch(index) {
                         case 0:
-                            return new Object[]{ new BackPropagation(), 0.001f, false, TrainMode.SUPERVISED_BATCH_MODE };
+                            return new Object[]{ new BackPropagation(), 0.001f, false, TrainMode.SUPERVISED_MINIBATCH };
                         case 1:
-                            return new Object[]{ new BackPropagation(), 0.01f, true, TrainMode.SUPERVISED_MINIBATCH };
+                            return new Object[]{ new BackPropagation(), 0.001f, false, TrainMode.SUPERVISED_ONLINE_MODE };
                         case 2:
-                            return new Object[]{ new BackPropagation(), 0.1f, false, TrainMode.SUPERVISED_ONLINE_MODE };
+                            return new Object[]{ new BackPropagation(), 0.001f, true, TrainMode.SUPERVISED_MINIBATCH };
                         case 3:
-                            return new Object[]{ new BackPropagation(), 0.1f, true, TrainMode.SUPERVISED_ONLINE_MODE };
+                            return new Object[]{ new BackPropagation(), 0.001f, true, TrainMode.SUPERVISED_ONLINE_MODE };
                         case 4:
-                            return new Object[]{ new ElasticBackProp(), 0.1f, false, TrainMode.SUPERVISED_ONLINE_MODE };
+                            return new Object[]{ new BackPropagation(), 0.01f, false, TrainMode.SUPERVISED_MINIBATCH };
                         case 5:
+                            return new Object[]{ new BackPropagation(), 0.01f, false, TrainMode.SUPERVISED_ONLINE_MODE };
+                        case 6:
+                            return new Object[]{ new BackPropagation(), 0.01f, true, TrainMode.SUPERVISED_BATCH_MODE };
+                        case 7:
+                            return new Object[]{ new BackPropagation(), 0.01f, true, TrainMode.SUPERVISED_MINIBATCH };
+                        case 8:
+                            return new Object[]{ new BackPropagation(), 0.1f, false, TrainMode.SUPERVISED_ONLINE_MODE };
+                        case 9:
+                            return new Object[]{ new BackPropagation(), 0.1f, false, TrainMode.SUPERVISED_MINIBATCH };
+                        case 10:
+                            return new Object[]{ new BackPropagation(), 0.1f, true, TrainMode.SUPERVISED_ONLINE_MODE };
+                        case 11:
+                            return new Object[]{ new BackPropagation(), 0.1f, true, TrainMode.SUPERVISED_MINIBATCH };
+                        case 12:
+                            return new Object[]{ new ElasticBackProp(), 0.1f, true, TrainMode.SUPERVISED_ONLINE_MODE };
+                        case 13:
                             return new Object[]{ new ElasticBackProp(), 0.1f, true, TrainMode.SUPERVISED_MINIBATCH };
+                        case 14:
+                            return new Object[]{ new MomentumEBP(), 0.1f, true, TrainMode.SUPERVISED_ONLINE_MODE };
+                        case 15:
+                            return new Object[]{ new MomentumEBP(), 0.1f, true, TrainMode.SUPERVISED_MINIBATCH };
+
                         }
                         return null;
                     }

@@ -3,6 +3,7 @@ package neur.data;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import neur.NeuralNetwork;
 import neur.learning.LearningAlgorithm;
@@ -45,10 +46,14 @@ public class TrainingSet implements Serializable {
         if (mode.isSupervised())
         {
             res.errorTerms = new float[nnw.outv().length];
-            res.mse = 0f;
         }
+        double mse = 0;
         int k = 0;
-        for(float[][] d : set)
+        List<float[][]> shuffled = new ArrayList<float[][]>();
+        shuffled.addAll(set);
+        Collections.shuffle(shuffled);
+        k = 0;
+        for(float[][] d : shuffled)
         {
             float[] outf = nnw.feedf(d[0]);
             if (mode.isSupervised())
@@ -58,7 +63,7 @@ public class TrainingSet implements Serializable {
                 for(float e : errors)
                 {
                     res.errorTerms[i++] += e;
-                    res.mse += e * e;
+                    mse += e * e;
                 }
                 if (mode == TrainMode.SUPERVISED_ONLINE_MODE)
                 {
@@ -68,9 +73,7 @@ public class TrainingSet implements Serializable {
                 {
                     if (k == set.size() - 1 || k % (int)params[1] == 0)
                     {
-                        float tmp = res.mse;
                         L.learn(nnw, errors, params);
-                        res.mse = tmp + res.mse / (int)params[1];
                     }
                 }
                 k++;
@@ -80,8 +83,8 @@ public class TrainingSet implements Serializable {
         {
             res.errorTerms = Arrf.div(res.errorTerms, 2);
             L.learn(nnw, res.errorTerms, params);
-            res.mse /= set.size();
         }
+        res.mse = (float)(mse / set.size());
         L.finishEpoch(nnw, params);
         return res;
     }
