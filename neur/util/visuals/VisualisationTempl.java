@@ -103,7 +103,7 @@ public abstract class VisualisationTempl {
         Dimension d = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
         int xstep = (d.width - w) / Math.max(1,xd - 1);
         int ystep = (d.height - h) / Math.max(1, yd - 1);
-        frame.setBounds((x - 1)*xstep, (y - 1)*ystep, w, h);
+        frame.setBounds((x - 1)*xstep, (y - 1)*ystep, w, Math.min(h, ystep));
         return (T)this;
     }
     

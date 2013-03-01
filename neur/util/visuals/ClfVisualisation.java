@@ -79,13 +79,5 @@ public class ClfVisualisation extends VisualisationTempl {
                 max = i;
         return max;
     }
-    
-    
-    public void drawWeight(Graphics2D g, double x1,double y1, double x2,double y2, Color c)
-    {
-        for(int i = 0; i < (c.getBlue()+c.getRed()) / 32; i++)
-        g.drawLine((int)x1, (int)y1+i, (int)x2, (int)y2+i);
-    }
-    
-
+        
 }

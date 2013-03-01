@@ -62,8 +62,18 @@ public class MLPVisualisation extends VisualisationTempl {
     }
     public void drawWeight(Graphics2D g, double x1,double y1, double x2,double y2, Color c)
     {
-        for(int i = 0; i < (c.getBlue()+c.getRed()) / 32; i++)
-        g.drawLine((int)x1, (int)y1+i, (int)x2, (int)y2+i);
+        float width = (c.getBlue()+c.getRed()) / 32;
+        if (optimise > 2)
+        {
+            g.setStroke(new BasicStroke(width));
+            g.drawLine((int)x1, (int)y1, (int)x2, (int)y2);
+            g.setStroke(new BasicStroke(1f));
+        }
+        else
+        {
+            for (int i = 0; i < width; i++)
+                g.drawLine((int)x1, (int)y1+i, (int)x2, (int)y2+i);
+        }
     }
     
     
