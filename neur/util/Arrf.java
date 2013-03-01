@@ -6,7 +6,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
 
-/** functions for the manipulation of arrays */
+/** Functions for the manipulation of arrays.
+ * 
+ * Multidimensional arrays are in this utility class always treated like samples, where
+ * the outermost (containing) array is the container of individual records in the sample, 
+ * and inner (contained) arrays reflect in their dimensionality (if any) the structure of an individual record.
+ * 
+ * This is the same policy as that adapted in TrainingSet.java.
+ */
 public final class Arrf {
 
     
@@ -43,6 +50,13 @@ public final class Arrf {
         for(String[] d : data)
             r[j++] = d[i];
         return r;
+    }
+    public static float[][]                 cols(float[][][] data, int j)
+    {
+        float[][] ret = new float[data[0][j].length][];
+        for (int i = 0; i < ret.length; i++)
+            ret[i] = col(data, j, i);
+        return ret;
     }
     
     // --- restructuring of data --- //
@@ -419,7 +433,7 @@ public final class Arrf {
     
     
     
-    // --- data property extraction --- //
+    // --- data property extraction and compression --- //
     
     public static float[][]                 classes(float[] data)
     {
@@ -477,7 +491,7 @@ public final class Arrf {
         r.put(cur, counter);
         return r;
     }
-    
+
     
     // --- vector algebra --- //
     
@@ -497,6 +511,14 @@ public final class Arrf {
             R[i] = A[i] + B[i];
         }
         return R;
+    }
+    public static float[]                   add(float[]... list)
+    {
+        float[] ret = new float[list[0].length];
+        for (int j = 0; j < list.length; j++)
+            for (int i = 0; i < list[j].length; i++)
+                ret[i] += list[j][i];
+        return ret;
     }
     public static double[]                  add(double[] A, double[] B)
     {
@@ -539,14 +561,22 @@ public final class Arrf {
         }
         return r;
     }    
-    public static double[]                   div(double[] data, double divisor)
+    public static double[]                  div(double[] data, double divisor)
     {
         double[] r = new double[data.length];
         for (int i = 0; i < r.length; i++) {
             r[i] = data[i] / divisor;
         }
         return r;
-    }  
+    }
+    public static float[]                   mult(float[] data, float multiplier)
+    {
+        float[] r = new float[data.length];
+        for (int i = 0; i < r.length; i++) {
+            r[i] = data[i] * multiplier;
+        }
+        return r;
+    } 
     // --- statistical functions for even distributions --- //
     
     public static float                     evdist_mean(float[] data)
@@ -571,9 +601,37 @@ public final class Arrf {
     }
     public static float                     evdist_sd(float[] data)
     {
-        return (float)Math.sqrt((float)evdist_variance(data));
+        return (float)Math.sqrt(evdist_variance(data));
     }
 
-
+    
+    
+    // other statistical functions
+    public static float                     covariance(float[] A, float[] B)
+    {
+        cocheck(A,B);
+        float 
+                amean = evdist_mean(A),
+                bmean = evdist_mean(B);
+        float sum = 0f;
+        for (int i = 0; i < A.length; i++)
+        {
+            sum += (A[i] - amean) * (B[i] - bmean);
+        }
+        return sum / (float)A.length;
+    }
+    public static float                     pearsonCorrelation(float[] A, float[] B)
+    {
+        cocheck(A,B);
+        return covariance(A, B) 
+                / (evdist_sd(A) * evdist_sd(B))
+                
+                ;
+    }
+    private static void cocheck(float[] A, float[] B)
+    {
+        if (A.length != B.length)
+            throw new RuntimeException("samples of A and B are not of same length");
+    }
     
 }

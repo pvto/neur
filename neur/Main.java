@@ -14,6 +14,7 @@ import neur.learning.Teachers;
 import neur.learning.clf.Fast1OfNClassifier;
 import neur.learning.learner.ElasticBackProp;
 import neur.struct.ActivationFunction;
+import neur.util.Arrf;
 import neur.util.Log;
 import neur.util.dataio.DiskIO;
 import neur.util.visuals.ClfVisualisation;
@@ -37,39 +38,36 @@ public class Main {
         final int dataset = 104;
 //        final String sample = "ecoli";
 //        int[] in = {1,2,3,4,5,6,7}, out = new int[]{8};
-        final String sample = "sup-2-sines";
-        int[] in = {0,2}, out = {3};
+        final String sample = "new-thyroid";
+        int[] in = {1,2,3,4,5}, out = {0};
         final String datagen = sample;
         
-//        DbSamples dbSamples = new DbSamples(getDbClient());
-//        final float[][][] tdata = createSample();
-//        final float[][][] tdata = dbSamples.loadSample(dataset, sample);
-//        final float[][][] tdata = 
-//                neur.util.Arrf.normaliseMinmax(
-//                
-//                new Sampler(){{EVEN_OUT_CL_DISTRIB=0;}}
-//                .extractSample(
-//                new DiskIO().loadCSV("/media/KINGSTON/nlg/data/MATLAB/"+sample+".data","(,\\s*|,?\\s+)"), 
-//                in, out))
-//                ;
-        final float[][][] tdata = new float[200][][];
-        for (int i = 0; i < tdata.length; i++)
-        {
-            double x = (double)i / (double)tdata.length;
-            double y =  Math.sin(x * 11);
-            double tan = Math.cos(x * 11);
-            double add = 0.4 *  (Math.random()>0.5?1.0:-1.0);
-                    //(0.1+Math.random())*0.2 * (Math.random()>0.5?1.0:-1.0);
-            tdata[i] = 
-                    new float[][] {{(float)x,(float)(y + add),(float)tan},  {add>0?1f:0f,add>0?0f:1f}};
-        }
+        final float[][][] tdata = 
+                neur.util.Arrf.normaliseMinmax(
+                
+                new Sampler(){{EVEN_OUT_CL_DISTRIB=0;}}
+                .extractSample(
+                new DiskIO().loadCSV("src_copy/data/MATLAB/"+sample+".data","(,\\s*|,?\\s+)"), 
+                in, out))
+                ;
+//        final float[][][] tdata = new float[200][][];
+//        for (int i = 0; i < tdata.length; i++)
+//        {
+//            double x = (double)i / (double)tdata.length;
+//            double y =  Math.sin(x * 11);
+//            double tan = Math.cos(x * 11);
+//            double add = 0.4 *  (Math.random()>0.5?1.0:-1.0);
+//                    //(0.1+Math.random())*0.2 * (Math.random()>0.5?1.0:-1.0);
+//            tdata[i] = 
+//                    new float[][] {{(float)x,(float)(y + add),(float)tan},  {add>0?1f:0f,add>0?0f:1f}};
+//        }
         log.log("loaded dataset %s (in,out):(%d,%d) size %d", sample, tdata[0][0].length, tdata[0][1].length, tdata.length);
         LearnParams<MLP,ElasticBackProp> p = new LearnParams()
         {{
                 NNW_AFUNC = ActivationFunction.Types.AFUNC_TANH;
                 NNW_AFUNC_PARAMS = new float[]{ 3f };
                 MODE = TrainMode.SUPERVISED_ONLINE_MODE;
-                NNW_DIMS = new int[]{tdata[0][0].length, 24, tdata[0][1].length};
+                NNW_DIMS = new int[]{tdata[0][0].length, 6, tdata[0][1].length};
 
                 L = new neur.learning.learner.
                         //BackPropagation();
@@ -78,7 +76,7 @@ public class Main {
                 LEARNING_RATE_COEF = 0.1f;
                 DYNAMIC_LEARNING_RATE = false;
                 TRG_ERR = 1e-9f;
-                TEACH_MAX_ITERS = 48000;
+                TEACH_MAX_ITERS = 2000;
                 DIVERGENCE_PRESUMED = Math.min(Math.max(400, TEACH_MAX_ITERS / 2), 24000);
                 STOCHASTIC_SEARCH_ITERS = 100;
 
@@ -93,13 +91,32 @@ public class Main {
                 }};
                 
                 CF = new Fast1OfNClassifier();
-        }};        
-
+        }};
+        float[][] cols = Arrf.cols(tdata, 1);
+        for (int i = 0; i < cols.length; i++)
+            cols[i] = Arrf.mult(cols[i], (float)(i+1));
+        float[] distribData = Arrf.add(cols);
+        for (int i = 0; i < tdata[0][0].length; i++)
+        {
+            float[] icol = Arrf.col(tdata, 0, i);
+            log.log("pearson-%d: %s", i, Arrf.pearsonCorrelation(icol, distribData));
+            for (int j = 0; j < tdata[0][1].length; j++)
+                log.log("pearson-%d-%d: %s",
+                        i,j,
+                        Arrf.pearsonCorrelation(icol, Arrf.col(tdata, 1, j)));
+        }
         for (int i = 0; i < max_runs; i++)
         {
             p.nnw = new MLP(p.NNW_DIMS, ActivationFunction.Types.create(p.NNW_AFUNC, p.NNW_AFUNC_PARAMS));
             LearnRecord<MLP> r = new LearnRecord<MLP>(p);
-            new ClfVisualisation(){{optimise=4.0;}}.createFrame(r, 500, 400, 0.5).setScreenPos("21 21").run();
+            int nvisu = tdata[0][0].length -1;
+            for (int j = 0; j < nvisu; j++) {
+                String scrPos = String.format("2%d 2%d", nvisu, j+1);
+                new ClfVisualisation(){{optimise=4.0;}}
+                        .setParameter("Y", j+1)
+                        .createFrame(r, 300, 200, 0.5).setScreenPos(scrPos).run();
+            }
+
             new MLPVisualisation().createFrame(r, 700, 600, 15).run();
             runTest(p, r);
         }
