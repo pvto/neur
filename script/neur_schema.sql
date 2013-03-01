@@ -178,6 +178,8 @@ CREATE TABLE "PUBLIC"."RREC_AVG"
     FITNESS_VAR decimal(22,9)
 )
 ;
+ALTER TABLE "PUBLIC"."RREC_AVG" ADD TEST_ERR decimal(5,2);
+ALTER TABLE "PUBLIC"."RREC_AVG" ADD TRAIN_ERR decimal(5,2);
 
 create view rrec_avg_ord as
 select co.*,av.* from rrec_avg av
