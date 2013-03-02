@@ -38,18 +38,23 @@ public class Main {
         final int dataset = 104;
 //        final String sample = "ecoli";
 //        int[] in = {1,2,3,4,5,6,7}, out = new int[]{8};
-        final String sample = "new-thyroid";
-        int[] in = {1,2,3,4,5}, out = {0};
+        final String sample = "haberman";
+        int[] in = {0,1,2}, out = {3};
         final String datagen = sample;
         
         final float[][][] tdata = 
                 neur.util.Arrf.normaliseMinmax(
                 
-                new Sampler(){{EVEN_OUT_CL_DISTRIB=0;}}
+                new Sampler(){{
+                    EVEN_OUT_CL_DISTRIB=0;
+                    CLUSTERISE_INPUT=new int[]{0,6, 1,14, 2,12};
+                }}
                 .extractSample(
                 new DiskIO().loadCSV("src_copy/data/MATLAB/"+sample+".data","(,\\s*|,?\\s+)"), 
                 in, out))
                 ;
+        
+        
 //        final float[][][] tdata = new float[200][][];
 //        for (int i = 0; i < tdata.length; i++)
 //        {
@@ -64,7 +69,7 @@ public class Main {
         log.log("loaded dataset %s (in,out):(%d,%d) size %d", sample, tdata[0][0].length, tdata[0][1].length, tdata.length);
         LearnParams<MLP,ElasticBackProp> p = new LearnParams()
         {{
-                NNW_AFUNC = ActivationFunction.Types.AFUNC_TANH;
+                NNW_AFUNC = ActivationFunction.Types.AFUNC_SIGMOID;
                 NNW_AFUNC_PARAMS = new float[]{ 3f };
                 MODE = TrainMode.SUPERVISED_ONLINE_MODE;
                 NNW_DIMS = new int[]{tdata[0][0].length, 6, tdata[0][1].length};
@@ -109,15 +114,15 @@ public class Main {
         {
             p.nnw = new MLP(p.NNW_DIMS, ActivationFunction.Types.create(p.NNW_AFUNC, p.NNW_AFUNC_PARAMS));
             LearnRecord<MLP> r = new LearnRecord<MLP>(p);
-            int nvisu = tdata[0][0].length -1;
-            for (int j = 0; j < nvisu; j++) {
-                String scrPos = String.format("2%d 2%d", nvisu, j+1);
-                new ClfVisualisation(){{optimise=4.0;}}
-                        .setParameter("Y", j+1)
-                        .createFrame(r, 300, 200, 0.5).setScreenPos(scrPos).run();
-            }
+//            int nvisu = tdata[0][0].length -1;
+//            for (int j = 0; j < nvisu; j++) {
+//                String scrPos = String.format("2%d 2%d", nvisu, j+1);
+//                new ClfVisualisation(){{optimise=4.0;}}
+//                        .setParameter("Y", j+1)
+//                        .createFrame(r, 300, 200, 0.5).setScreenPos(scrPos).run();
+//            }
 
-            new MLPVisualisation().createFrame(r, 700, 600, 15).run();
+            //new MLPVisualisation().createFrame(r, 400, 300, 7).run();
             runTest(p, r);
         }
         cli().close();

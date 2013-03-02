@@ -231,7 +231,35 @@ public final class Arrf {
             res[i] = val;
         return res;
     }
-    
+    public static float[]                   range(float min, float max, float step)
+    {
+        float range = max-min;
+        float[] res = new float[(int)(range / step)];
+        float f = min;
+        for(int i = 0; i < res.length; f += step)   // inhibit an extra class due to possible floating point inaccuracy
+            res[i++] = f;
+        return res;
+    }
+    /** Clusterises given array so taht each value is truncated to the nearest
+    * floor value found in the classes array. 
+    * Optimised for class count < 12 */
+    public static float[]                   clusterise(float[] data, float[] classes)
+    {
+        float[] ret = new float[data.length];
+        for (int i = 0; i < ret.length; i++)
+        {
+            ret[i] = classes[classes.length - 1];
+            for(int r = 0; r < classes.length; r++)
+            {
+                if (classes[r] > data[i])
+                {
+                    ret[i] = classes[r - 1];
+                    break;
+                }
+            }
+        }
+        return ret;
+    }
     // --- conversion methods between different types of arrays --- //
     
     public static int[]                     ints(String[] data)
@@ -491,7 +519,13 @@ public final class Arrf {
         r.put(cur, counter);
         return r;
     }
-
+    public static int[][]                   intClasses(float[][] classes)
+    {
+        int[][] ret = new int[classes.length][];
+        for (int i = 0; i < ret.length; i++)
+            ret[i] = new int[]{i, (int)classes[i][1]};
+        return ret;
+    }
     
     // --- vector algebra --- //
     

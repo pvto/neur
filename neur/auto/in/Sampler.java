@@ -14,6 +14,9 @@ public class Sampler {
     
     public int DISCR_DATA_UPPER_THRESHOLD = 32;
     public int EVEN_OUT_CL_DISTRIB = 1;
+    /** form: list of pairs (in-column-index,cluster-count). Clusterised columns must be real-valued. */
+    public int[] CLUSTERISE_INPUT = {};   
+            
     
     public float[][][] extractSample(List<String[]> raw, int[] in, int[] out)
     {
@@ -64,6 +67,7 @@ public class Sampler {
         }        
         
         // separate each input column into classes if it is discrete-numeric or discrete-other
+        //  or clusterised from some reason
         Object[] classes = new Object[real.length];
         int totalIns = 0,
                 totalOuts = 0;
@@ -76,7 +80,34 @@ public class Sampler {
                 classes[i] = cc;
                 n = cc.length;
             }
-            else if (real[i]) { } // n = 1
+            else if (real[i])
+            {   // n = 1,  or clusterise a real column
+                for(int c = 0; c < CLUSTERISE_INPUT.length; c+= 2)
+                {
+                    if (CLUSTERISE_INPUT[c] == i)
+                    {
+                        real[i] = false;
+                        integral[i] = true;
+                        float[] A = (float[])tmpArrays[i];
+                        float[] range = range(min(A), max(A), (max(A)-min(A))/CLUSTERISE_INPUT[c+1]);
+                        float[] clustered = clusterise(A, range);
+                        float[][] cluster = classes(clustered);
+                        int[][] cc = intClasses(cluster);
+                        classes[i] = cc;
+                        int[] nv = new int[clustered.length];
+                        tmpArrays[i] = nv;
+                        for (int j = 0; j < nv.length; j++)
+                            for(int clz = 0; clz < cluster.length; clz++)
+                                if (cluster[clz][0] == clustered[j])
+                                {
+                                    nv[j] = clz;
+                                    break;
+                                }
+                        n = cc.length;
+                        break;
+                    }
+                }
+            } 
             else
             {
                 TreeMap cc = classes((String[])tmpArrays[i]);
