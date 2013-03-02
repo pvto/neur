@@ -57,7 +57,7 @@ public final class Q <T extends DbCli>
                 else{p.append(val.toString());}
             }
             else{
-                p.append(String.format(fmt, val));
+                p.append(String.format(Locale.ENGLISH, fmt, val));
             }
             if (hyphens) p.append('\'');
             colintro = true;
