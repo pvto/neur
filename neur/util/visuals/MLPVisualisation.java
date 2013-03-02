@@ -12,6 +12,7 @@ public class MLPVisualisation extends VisualisationTempl {
     public MLPVisualisation(){}
     
    
+    private double tmp = 0;
     public void visualise(LearnRecord rec, Graphics g, int x0, int y0, int width, int height)
     {
         MLP net = (MLP)rec.current;
@@ -50,6 +51,7 @@ public class MLPVisualisation extends VisualisationTempl {
                 drawNeuron(g2, xs + lr * xdiv, ystart + n * ydiv, size, net.layers[lr][n]);
             }
         }
+        tmp = optimise;
     }
     
     public void drawNeuron(Graphics2D g, double x, double y, double size, Neuron n)
@@ -63,7 +65,7 @@ public class MLPVisualisation extends VisualisationTempl {
     public void drawWeight(Graphics2D g, double x1,double y1, double x2,double y2, Color c)
     {
         float width = (c.getBlue()+c.getRed()) / 32;
-        if (optimise > 2)
+        if (optimise > 8 || optimise > 4 && tmp > 8)
         {
             g.setStroke(new BasicStroke(width));
             g.drawLine((int)x1, (int)y1, (int)x2, (int)y2);

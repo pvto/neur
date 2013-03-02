@@ -27,6 +27,7 @@ public abstract class VisualisationTempl {
     {
         this.w = w;  this.h = h;
         final JFrame fr = frame = new JFrame();
+        frame.setFocusableWindowState(false);
         fr.setLayout(new BorderLayout());
         final JPanel panel = new JPanel()
         {
