@@ -21,13 +21,15 @@ public abstract class VisualisationTempl {
     public int w,h;
     public Map<String,Object> parameters = new HashMap<String,Object>();
     public volatile boolean doRun = true;
+    public boolean WINDOW_DECO = true;
     
     public <T extends VisualisationTempl> T 
-            createFrame(final LearnRecord rec, final int w, final int h, final double updateFrequency)
+            createFrame(final LearnRecord rec, int wdt, int hgt, final double updateFrequency)
     {
-        this.w = w;  this.h = h;
+        this.w = wdt;  this.h = hgt;
         final JFrame fr = frame = new JFrame();
         frame.setFocusableWindowState(false);
+        frame.setUndecorated(!WINDOW_DECO);
         fr.setLayout(new BorderLayout());
         final JPanel panel = new JPanel()
         {
@@ -40,10 +42,10 @@ public abstract class VisualisationTempl {
                 super.paintComponent(g);
                 if (rec.current == null)
                     return;
-                g.clearRect(0, 0, w, h);
+                g.clearRect(0, 0, fr.getWidth(), fr.getHeight());
                 try
                 {
-                    visualise(rec, g, 0, 0, fr.getWidth(), fr.getHeight());
+                    visualise(rec, g, 0, 0, fr.getWidth(), fr.getHeight() - (WINDOW_DECO?20:0));
                 } catch(Exception ex) { ex.printStackTrace(); }
                 long end = System.currentTimeMillis();
                 long time = (end-start);
@@ -54,7 +56,7 @@ public abstract class VisualisationTempl {
                     chg = end;
                 }
                 char[] ch = String.format("%.2ffps", fps).toCharArray();
-                g.drawChars(ch, 0, ch.length, 1, 20);
+                g.drawChars(ch, 0, ch.length, 1, (WINDOW_DECO?20:0));
                 if (time > 80L)
                 {
                     optimise *= 2.0;
@@ -75,7 +77,7 @@ public abstract class VisualisationTempl {
         {
             public void run()
             {
-                fr.setSize(w,h + 20); // upper bar takes space
+                fr.setSize(w,h + (WINDOW_DECO?20:0)); // upper bar takes space
                 fr.setVisible(true);
             }
         };
@@ -92,19 +94,23 @@ public abstract class VisualisationTempl {
     
     public <T extends VisualisationTempl> T setScreenPos(String pos)
     {
-        String CONF = "\\d\\d\\s+\\d\\d";
+        String CONF = "\\d+,\\d+\\s+\\d+,\\d+";
         if (!pos.matches(CONF))
-            throw new RuntimeException("Give screen position in form [XY] [xy] where X,Y are grid width and height and x,y frame x,y in grid");
-        char[] wh = pos.split("\\s+")[0].toCharArray();
-        char[] pos_ = pos.split("\\s+")[1].toCharArray();
-        int xd = (int)(wh[0] - '0');
-        int yd = (int)(wh[1] - '0');
-        int x = (int)(pos_[0] - '0');
-        int y = (int)(pos_[1] - '0');
+            throw new RuntimeException("Give screen position in form [X,Y] [x,y] where X,Y are grid width and height and x,y frame x,y in grid");
+        String[] nn = pos.split("\\s+");
+        String[] dim = nn[0].split(","); 
+        String[] pos_ = nn[1].split(",");
+        int xd = Integer.parseInt(dim[0]);
+        int yd = Integer.parseInt(dim[1]);
+        int x = Integer.parseInt(pos_[0]);
+        int y = Integer.parseInt(pos_[1]);
         Dimension d = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
-        int xstep = (d.width - w) / Math.max(1,xd - 1);
-        int ystep = (d.height - h) / Math.max(1, yd - 1);
-        frame.setBounds((x - 1)*xstep, (y - 1)*ystep, w, Math.min(h, ystep));
+        double xstep = (d.width - w) / (double)Math.max(1,xd - 1);
+        double ystep = (d.height - h) / (double)Math.max(1, yd - 1);
+        w = (int)Math.min(w, xstep);
+        h = (int)Math.min(h, ystep);
+        frame.setBounds(
+                (int)((x - 1)*xstep), (int)((y - 1)*ystep), w, h);
         return (T)this;
     }
     

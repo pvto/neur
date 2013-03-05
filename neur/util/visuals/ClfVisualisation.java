@@ -15,6 +15,7 @@ public class ClfVisualisation extends VisualisationTempl {
     {
         setParameter("X", 0);
         setParameter("Y", 1);
+        setParameter("margin", 10);
     }
     
     public void visualise(LearnRecord rec, Graphics g, int x0, int y0, int width, int height)
@@ -26,11 +27,11 @@ public class ClfVisualisation extends VisualisationTempl {
         Graphics2D g2 = (Graphics2D)g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
-        int margin = 10;
+        int margin = (Integer)parameters.get("margin");
         int xs = x0 + margin;
         int ys = y0 + margin;
         int xe = x0 + width - margin * 2;
-        int ye = y0 + height - margin * 2 - 20;
+        int ye = y0 + height - margin * 2 - (WINDOW_DECO?20:0);
         int 
                 yax = (Integer)parameters.get("Y"),
                 xax = (Integer)parameters.get("X")
@@ -49,7 +50,9 @@ public class ClfVisualisation extends VisualisationTempl {
             {
                 double x = dx1 + (dx2 - dx1) * ((u - xs) / (double)(xe - xs));
                 double y = dy1 + (dy2 - dy1) * ((v - ys) / (double)(ye - ys));
-                float[] data = new float[] {(float)x,(float)y};
+                float[] data = new float[rec.p.D.data[0][0].length];
+                data[xax] = (float)x;
+                data[yax] = (float)y;
                 g2.setColor(COL[getCol(COL, net, data)]);
                 g2.drawLine((int)u,(int)v,(int)(u+optimise),(int)(v+optimise));
             }
