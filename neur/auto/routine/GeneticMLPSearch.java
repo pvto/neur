@@ -41,6 +41,7 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
     public double PROB_GENERATE_NEW_INDIVIDUAL = 0.5;
     public double PROB_RANDOM_MUTATION = 0.1;
     public double MAX_DIMENSION_SEARCH_RATIO = 1.0 / 6.0;
+    public boolean VISUALISE_MLP = true;
     
     public boolean REMOTING = false; // TODO: implement remote server+client
     private Executor exepool = Executors.newCachedThreadPool();
@@ -186,7 +187,7 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
                             int nh = eve.p.NNW_DIMS.length - 2;
                             while (nh > 1 && eve.p.NNW_DIMS[1] * nh > eve.p.D.data.length * MAX_DIMENSION_SEARCH_RATIO)
                                 nh--;
-                            if (nh > eve.p.NNW_DIMS.length - 2)
+                            if (nh < eve.p.NNW_DIMS.length - 2)
                             {
                                 int[] t = eve.p.NNW_DIMS;
                                 eve.p.NNW_DIMS = new int[nh + 2];
@@ -225,9 +226,12 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
                     if (cat.challenge(eve) == 0)
                         continue;
 
-                    MLPVisualisation vis = new MLPVisualisation().createFrame(eve.lrec, 400, 300, 10).run();
+                    MLPVisualisation vis = null;
+                    if (VISUALISE_MLP)
+                        vis = new MLPVisualisation().createFrame(eve.lrec, 400, 300, 10).run();
                     evaluateFitness(eve, c, cat);
-                    vis.doRun = false;
+                    if (VISUALISE_MLP)
+                        vis.doRun = false;
                     population.add(eve);
                     ret.countDown(eve.lrec);
                     // keep the population relatively small with some fit and some random individuals
@@ -295,7 +299,7 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
 
     
     private static class Predator {
-        double meek = 2;
+        double meek = 1.5;
         LearnParams L = new LearnParams(){{
             NNW_DIMS = new int[]{9,12,2};
             CF = new Fast1Of2Classifier();

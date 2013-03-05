@@ -2,6 +2,7 @@
 package neur.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
@@ -57,6 +58,17 @@ public final class Arrf {
         for (int i = 0; i < ret.length; i++)
             ret[i] = col(data, j, i);
         return ret;
+    }
+    public static void                      setCol(float[][][] target, float[] data, int j, int i)
+    {
+        for (int k = 0; k < data.length; k++)
+            target[k][j][i] = data[k];
+    }
+    public static void                      addCol(float[][][] target, float[] col, int j)
+    {
+        for (int k = 0; k < col.length; k++)
+            target[k][j] = Arrays.copyOf(target[k][j], target[k][j].length + 1);
+        setCol(target, col, j, target[0][j].length - 1);
     }
     
     // --- restructuring of data --- //
@@ -563,6 +575,13 @@ public final class Arrf {
         }
         return R;
     }
+    public static float[]                   dot(float[] A, float[] B)
+    {
+        float[] ret = new float[A.length];
+        for (int i = 0; i < ret.length; i++)
+            ret[i] = A[i] * B[i];
+        return ret;
+    }
     public static int[]                     subtract(int from, int[] A)
     {
         int[] r = new int[A.length];
@@ -608,6 +627,14 @@ public final class Arrf {
         float[] r = new float[data.length];
         for (int i = 0; i < r.length; i++) {
             r[i] = data[i] * multiplier;
+        }
+        return r;
+    }
+    public static float[]                   pow(float[] data, float power)
+    {
+        float[] r = new float[data.length];
+        for (int i = 0; i < r.length; i++) {
+            r[i] = (float)Math.pow(data[i], power);
         }
         return r;
     } 

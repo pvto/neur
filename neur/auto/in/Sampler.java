@@ -15,8 +15,8 @@ public class Sampler {
     public int DISCR_DATA_UPPER_THRESHOLD = 32;
     public int EVEN_OUT_CL_DISTRIB = 1;
     /** form: list of pairs (in-column-index,cluster-count). Clusterised columns must be real-valued. */
-    public int[] CLUSTERISE_INPUT = {};   
-            
+    public int[] CLUSTERISE_INPUT = {};
+    
     
     public float[][][] extractSample(List<String[]> raw, int[] in, int[] out)
     {
