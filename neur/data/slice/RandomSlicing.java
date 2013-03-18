@@ -24,7 +24,7 @@ public class RandomSlicing {
             istest.set(rnd);
             ret[1].set.add(data[rnd]);
         }
-        for (int i = 0; i < ret.length; i++)
+        for (int i = 0; i < data.length; i++)
         {
             if (!istest.get(i))
                 ret[0].set.add(data[i]);
