@@ -22,6 +22,7 @@ public abstract class VisualisationTempl {
     public Map<String,Object> parameters = new HashMap<String,Object>();
     public volatile boolean doRun = true;
     public boolean WINDOW_DECO = true;
+    public boolean SHOW_FPS = true;
     
     public <T extends VisualisationTempl> T 
             createFrame(final LearnRecord rec, int wdt, int hgt, final double updateFrequency)
@@ -55,8 +56,11 @@ public abstract class VisualisationTempl {
                     fps = 1000.0/time;
                     chg = end;
                 }
-                char[] ch = String.format("%.2ffps", fps).toCharArray();
-                g.drawChars(ch, 0, ch.length, 1, (WINDOW_DECO?20:0));
+                if (SHOW_FPS)
+                {
+                    char[] ch = String.format("%.2ffps", fps).toCharArray();
+                    g.drawChars(ch, 0, ch.length, 1, (WINDOW_DECO?20:0));
+                }
                 if (time > 80L)
                 {
                     optimise *= 2.0;

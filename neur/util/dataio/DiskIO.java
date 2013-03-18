@@ -4,6 +4,7 @@ package neur.util.dataio;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class DiskIO {
 
@@ -58,7 +59,7 @@ public class DiskIO {
                 String extra = (x++ == dd.length - 1) 
                         ? "\r\n"
                         : ", ";
-                out.write(String.format(fmt+extra, d).getBytes());
+                out.write(String.format(Locale.ENGLISH, fmt+extra, d).getBytes());
             }
         }
         out.close();

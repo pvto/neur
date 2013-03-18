@@ -135,7 +135,7 @@ public interface Log {
             
             log = new Log()
             {
-                private SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss' '");
+                private SimpleDateFormat df = new SimpleDateFormat("yyMMdd HH:mm:ss' '");
                 private OutputStream out;
                 {
                     try {

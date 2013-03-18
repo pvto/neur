@@ -457,6 +457,29 @@ public final class Arrf {
         }
         return r;
     }
+    public static float[]                   normaliseMeansd(float[] data)
+    {
+        float[] r = new float[data.length];
+        float mean = evdist_mean(data);
+        float sd = evdist_sd(data);
+        for (int i = 0; i < r.length; i++)
+            r[i] = (data[i] - mean) / (sd);
+        return r;
+    }
+    public static float[][][]               normaliseMeansd(float[][][] data)
+    {
+        float[][][] r = copy(data);
+        for(int j = 0; j < data[0].length; j++)
+        for (int i = 0; i < data[0][j].length; i++)
+        {
+            float[] norm = normaliseMeansd(col(data, j, i));
+            for (int k = 0; k < norm.length; k++)
+            {
+                r[k][j][i] = norm[k];
+            }
+        }
+        return r;
+    }
     public static <T> T[]                   shuffle(T[] data)
     {
         T[] r = java.util.Arrays.copyOf(data, data.length);
