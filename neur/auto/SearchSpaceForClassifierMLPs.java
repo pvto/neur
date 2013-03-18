@@ -61,9 +61,9 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
                         case 5:
                             return new Object[]{ new BackPropagation(), 0.01f, false, TrainMode.SUPERVISED_ONLINE_MODE };
                         case 6:
-                            return new Object[]{ new BackPropagation(), 0.01f, true, TrainMode.SUPERVISED_BATCH_MODE };
-                        case 7:
                             return new Object[]{ new BackPropagation(), 0.01f, true, TrainMode.SUPERVISED_MINIBATCH };
+                        case 7:
+                            return new Object[]{ new BackPropagation(), 0.01f, true, TrainMode.SUPERVISED_ONLINE_MODE };
                         case 8:
                             return new Object[]{ new BackPropagation(), 0.1f, false, TrainMode.SUPERVISED_ONLINE_MODE };
                         case 9:
@@ -138,7 +138,8 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
     
     public boolean equal(LearnParams a, LearnParams b)
     {
-        if (Math.abs( a.NNW_DIMS[1] - b.NNW_DIMS[1]) < 1
+        if (Math.abs( a.NNW_DIMS[1] - b.NNW_DIMS[1]) == 0
+                && a.NNW_DIMS.length == b.NNW_DIMS.length
                 && a.STOCHASTIC_SEARCH_ITERS == b.STOCHASTIC_SEARCH_ITERS
                 && a.L.getClass() == b.L.getClass() && a.LEARNING_RATE_COEF == b.LEARNING_RATE_COEF && a.MODE == b.MODE 
                 && a.NNW_AFUNC == b.NNW_AFUNC && a.NNW_AFUNC_PARAMS[0] == b.NNW_AFUNC_PARAMS[0])
