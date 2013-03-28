@@ -1,6 +1,8 @@
 
 package neur.auto.routine;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 import neur.MLP;
@@ -10,7 +12,6 @@ import neur.auto.TopologySearchRoutine;
 import neur.learning.LearnParams;
 import neur.learning.LearnRecord;
 import neur.learning.Teachers;
-import neur.util.Arrf;
 import neur.util.Log;
 
 /**
@@ -19,7 +20,7 @@ import neur.util.Log;
  */
 public class PruningConstructiveMLPSearch implements TopologySearchRoutine {
 
-    private static Log log = Log.file.bind("pru-srch.log");
+    private static Log log = Log.create.chained(Log.cout, Log.file.bind("pru-srch.log"));
     
     public float nearnessRule = 2f;
     
@@ -27,7 +28,7 @@ public class PruningConstructiveMLPSearch implements TopologySearchRoutine {
     
     RelativeMLPFitnessComparator c = new RelativeMLPFitnessComparator();
     
-    
+    private int count = 0;
     private class _RecursiveAction extends RecursiveAction
     {
         _RecursiveAction(int low, int high, LearnParams p, NNSearchSpace s, TopologyFinding res)
@@ -41,16 +42,20 @@ public class PruningConstructiveMLPSearch implements TopologySearchRoutine {
         @Override
         protected void compute()
         {
-            if (low > high) return;
+            log.log("------"+low+"--"+high+"-----count="+count);
             if (low == high)
             {
                 p = s.resolveTopologyFromFlattenedIndex(p, low);
                 teachOne();
+                count++;
+                return;
             }
-            int mid = low + (int)((high-low) * Math.random());
-            _RecursiveAction t = new _RecursiveAction(low, mid, p, s, res);
-            _RecursiveAction u = new _RecursiveAction(mid+1, high, p, s, res);
-            invokeAll(t, u);
+            List<RecursiveAction> L = new LinkedList<RecursiveAction>();
+            int mid = low + (int)((high-low+1) * Math.random());
+            L.add(new _RecursiveAction(low, mid, p, s, res));
+            if (mid+1 <= high)
+                L.add(new _RecursiveAction(mid+1, high, p, s, res));
+            invokeAll(L);
         }
         
         private void teachOne()
@@ -60,21 +65,31 @@ public class PruningConstructiveMLPSearch implements TopologySearchRoutine {
                 if (res.records[i] != null)
                 {
                     if (near(p, res.records[i].res.p, s, res))
+                    {
+                        log.log("------near %d", low);
                         return;
+                    }
                 }
             }
 
             LearnParams p = this.p.copy();
-            p.NNW_DIMS = Arrf.copy(this.p.NNW_DIMS);
-            p.NNW_DIMS[1] = low; 
             LearnRecord<MLP> rec = new LearnRecord<MLP>(p);
-            for (int i = 0; i < rounds; i++)
+            int check = 0;
+            while(rec.p.getNumberOfPendingTrainingSets(rec) > 0)
             {
-                rec.p.nnw = new MLP(p);  // former networks are simply discarded; only their results interest us
-                LearnRecord.Item it = rec.addItem();
-                new Teachers().monteCarloAndIntensification(p, rec, log);
-                it.finish(rec.p.nnw);
-            }
+                rec.p.nnw = new MLP(rec.p);
+                rec.p.D.initTrain_Test_Sets(rec.p.TESTSET_SIZE, rec.p.DATASET_SLICING);
+                new Teachers().tabooBoxAndIntensification(rec.p, rec, log);
+                try {   // don't eat up all cpu!
+                    Thread.sleep(20);
+                } catch (Exception e) {
+                }
+                if (check++ > 20 && rec.p.getNumberOfPendingTrainingSets(rec) == rec.p.NUMBER_OF_TRAINING_SETS)
+                {
+                    log.log("no result");
+                    return;
+                }
+            }            
             rec.aggregateResults();
             c.putFitness(rec);
             res.countDown(rec);
@@ -86,9 +101,13 @@ public class PruningConstructiveMLPSearch implements TopologySearchRoutine {
     {
         if (p.NNW_DIMS[0] != q.NNW_DIMS[0])
             return false;
-        if (p.NNW_DIMS[2] != q.NNW_DIMS[2])
+        if (p.NNW_DIMS[p.NNW_DIMS.length - 1] != q.NNW_DIMS[q.NNW_DIMS.length - 1])
             return false;
-        if (Math.abs(p.NNW_DIMS[1] - q.NNW_DIMS[1]) > nearnessRule)
+        if (p.NNW_DIMS.length != q.NNW_DIMS.length)
+            return false;
+        int dist = Math.abs(p.NNW_DIMS[1] - q.NNW_DIMS[1]);
+        double nearness = nearnessRule;
+        if (dist > nearness)
             return false;
         
         Object[] oo = res.atomic_getRecordsAndBest();

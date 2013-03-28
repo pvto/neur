@@ -1,6 +1,7 @@
 
 package neur.auto.routine;
 
+import java.util.SortedSet;
 import java.util.TreeSet;
 import neur.learning.LearnRecord;
 
@@ -72,6 +73,14 @@ public class RelativeMLPFitnessComparator {
         return r;
     }
 
+    public int getIndex(LearnRecord r)
+    {
+        Rec R = new Rec();
+        R.r = r;
+        SortedSet<Rec> hs = seq.headSet(R);
+        return hs.size();
+    }
     
+    public int size() {     return seq.size(); }
     
 }

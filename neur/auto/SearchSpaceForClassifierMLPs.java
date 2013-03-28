@@ -110,6 +110,7 @@ public class SearchSpaceForClassifierMLPs extends NNSearchSpace {
         int la = super.linearEstimateForSize(learningAlgorithm);
         // resolve hidden neuron count per layer
         h = range / (hc * a * s * la);
+        h = super.getIndexedPoint(hiddenLayerSize, h).intValue();
         range %= (hc * a * s * la);
         // resolve hidden layer count
         int hcount = hiddenLayerCount.getDiscretePoints().get(range / (a * s * la)).intValue();
