@@ -8,8 +8,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import neur.MLP;
 import neur.auto.NNSearchSpace;
 import neur.auto.TopologyFinding;
@@ -23,6 +28,7 @@ import neur.learning.LearningAlgorithm;
 import neur.learning.Teachers;
 import neur.learning.clf.Fast1Of2Classifier;
 import neur.learning.learner.ElasticBackProp;
+import neur.server.SubmittingClient;
 import neur.struct.ActivationFunction;
 import neur.util.Arrf;
 import neur.util.Log;
@@ -30,7 +36,7 @@ import neur.util.sdim.SearchDimension;
 import neur.util.sdim.SearchDimension.Parameterised;
 import neur.util.visuals.MLPVisualisation;
 
-/**
+/** Implements a genetic search for a good MLP-classifier for given dataset.
  *
  * @author Paavo Toivanen
  */
@@ -40,30 +46,34 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
     public int GENEPOOL_SIZE = 20;
     public double PROB_GENERATE_NEW_INDIVIDUAL = 0.5;
     public double PROB_RANDOM_MUTATION = 0.1;
+    
     public double MAX_DIMENSION_SEARCH_RATIO = 1.0 / 6.0;
     public boolean VISUALISE_MLP = true;
     
-    public boolean REMOTING = false; // TODO: implement remote server+client
-    private Executor exepool = Executors.newCachedThreadPool();
-
-    static Log log = Log.create.chained(Log.cout, Log.file.bind("gen-mlp-s.log"));
+    /** Specifies the maximum number of simultaneous remote evaluations. This affects the performance
+     * of the genetic algorithm. */
+    public int REMOTING_OVERHEAD = 0;
+    public SubmittingClient remoteClient;
+    private Executor exepool = Executors.newFixedThreadPool(10);
     
+    static Log log = Log.create.chained(Log.cout, Log.file.bind("gen-mlp-s.log"));
+
     private static class Specimen {
         LearnParams p;
         LearnRecord lrec;
     }
     /** 
-     * @return a cross between the two given individuals, where continuous properties like 
-     * hidden-layer dimension are picked from an even distribution in [a,b], 
-     * and non-continuous properties like the activation function 
-     * are picked randomly from one of the two, with a small chance for random mutation.
+     * @return a cross between the two given individuals. For the new genotype, continuous properties like 
+     * hidden-layer dimension are picked from a continuous distribution between [a,b].
+     * Non-continuous properties like the activation function 
+     * are picked randomly from one of the two, with a small chance for a random mutation.
      */
     private Specimen cross(Specimen a, Specimen b, NNSearchSpace searchSpace)
     {
         // copy attributes from either parent
         Specimen A = (Math.random() > 0.5 ? b : a),
-                B = A == a ? b : a;
-        Specimen eve = new Specimen();
+                B = (A == a ? b : a),
+                eve = new Specimen();
         eve.p = A.p.copy();
         eve.lrec = new LearnRecord(eve.p);
         // pick hidden layer dimension from between parents'
@@ -71,7 +81,7 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
         {
             int dim = Math.min(A.p.NNW_DIMS[1], B.p.NNW_DIMS[1]);
             int dim2 = Math.max(A.p.NNW_DIMS[1], B.p.NNW_DIMS[1]);
-            int hidsize = dim + (int) ((dim2 - dim) * Math.random());
+            int hidsize = dim + (int) ((dim2 - dim + 1) * Math.random());
             int hidlayers = eve.p.NNW_DIMS.length - 1;
             for (int i = 1; i < hidlayers; i++)
                 eve.p.NNW_DIMS[i] = hidsize;
@@ -91,7 +101,7 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
                     eve.p.NNW_DIMS[i] = t[1];
             }
         }
-        // Get randomly genes from the either parent.
+        // Get genes from one of the parents.
         // There are no dominant genes.
         if (Math.random() > 0.5)
         {
@@ -126,16 +136,10 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
             {
                 int ind = (int) (Math.random() * searchSpace.linearEstimateForSize(lalg));
                 Object[] oo = lalg.getTargetGenerator().generate(ind);
-                eve.p.L = (LearningAlgorithm) oo[0];//o.L;
-                eve.p.LEARNING_RATE_COEF = (float) oo[1]; //o.LEARNING_RATE_COEF;
-                eve.p.DYNAMIC_LEARNING_RATE = (boolean) oo[2]; //o.DYNAMIC_LEARNING_RATE;
-                eve.p.MODE = (TrainMode) oo[3]; //o.MODE;
-
-//                NNSearchSpace.LearningAlgorithmParameters o = lalg.getTargetGenerator().generate(i);
-//                eve.p.L = o.L;
-//                eve.p.LEARNING_RATE_COEF = o.LEARNING_RATE_COEF;
-//                eve.p.DYNAMIC_LEARNING_RATE = o.DYNAMIC_LEARNING_RATE;
-//                eve.p.MODE = o.MODE;
+                eve.p.L = (LearningAlgorithm) oo[0];
+                eve.p.LEARNING_RATE_COEF = (float) oo[1];
+                eve.p.DYNAMIC_LEARNING_RATE = (boolean) oo[2];
+                eve.p.MODE = (TrainMode) oo[3];
             }
         }
         return eve;
@@ -148,25 +152,28 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
     @Override
     public TopologyFinding<MLP> search(final LearnParams templParams, final NNSearchSpace searchSpace)
     {
+        final RelativeMLPFitnessComparator c = new RelativeMLPFitnessComparator();
+        final Predator cat = new Predator();
+        final List<Specimen> evaluating = new CopyOnWriteArrayList<>();
+        startRemoteClient(c, cat, evaluating);
+        
         final int linsize = searchSpace.linearEstimateForSize();
         final int maxOperations = 
                 Math.max(40, linsize / 6);
         final TopologyFinding<MLP> ret = new TopologyFinding<>(maxOperations);
         
-        final Predator cat = new Predator();
+        final AtomicInteger remoteUnfinished = new AtomicInteger(0);
 
         Runnable r = new Runnable()
         {
-
+            List<Specimen> population = new ArrayList<>();
+            List<Specimen> deceased = new ArrayList<>();
+            int i = 0;
+            
             @Override
             public void run()
             {
-                 RelativeMLPFitnessComparator c = new RelativeMLPFitnessComparator();
 
-                List<Specimen> population = new ArrayList<>();
-                List<Specimen> deceased = new ArrayList<>();
-                
-                int i = 0;
                 while(i < maxOperations)
                 {
                     Specimen eve = null;
@@ -223,13 +230,26 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
                     
                     ++i;
                     
-                    if (cat.challenge(eve) == 0)
-                        continue;
+                    addComputation(eve);
+                }
+                log.log("finished after %d", i);
+                ret.finish();
+            }
 
+            private void addComputation(final Specimen eve)
+            {
+                Runnable r = 
+                new Runnable(){ public void run()
+                {
+                    if (cat.challenge(eve) == 0)
+                        return;
+                    
                     MLPVisualisation vis = null;
                     if (VISUALISE_MLP)
                         vis = new MLPVisualisation().createFrame(eve.lrec, 400, 300, 10).run();
+                    evaluating.add(eve);
                     evaluateFitness(eve, c, cat);
+                    evaluating.remove(eve);
                     if (VISUALISE_MLP)
                         vis.doRun = false;
                     population.add(eve);
@@ -244,8 +264,9 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
                             deceased.add(ex);
                         }
                     }
-                }
-                ret.finish();
+                }};
+                r.run();
+                //exepool.execute(r);
             }
 
 
@@ -271,25 +292,40 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
     };
 
 
-    private static void evaluateFitness(Specimen x, RelativeMLPFitnessComparator c, Predator cat)
+    private void evaluateFitness(Specimen x, RelativeMLPFitnessComparator c, Predator cat)
     {
         log.log("evaluate fitness h%d L%s ", x.p.NNW_DIMS[1], x.p.L.getClass());
         
         int check = 0;
+        x.p.id = (int) (Math.random() * Integer.MAX_VALUE);
         while(x.p.getNumberOfPendingTrainingSets(x.lrec) > 0)
         {
-            // TODO: this could be remote with forkjoin!            
-            x.p.nnw = new MLP(x.p);
-            x.p.D.initTrain_Test_Sets(x.p.TESTSET_SIZE, x.p.DATASET_SLICING);
-            new Teachers().tabooBoxAndIntensification(x.p, x.lrec, log);
+            if (REMOTING_OVERHEAD == 0)
+            {
+                x.p.nnw = new MLP(x.p);
+                x.p.D.initTrain_Test_Sets(x.p.TESTSET_SIZE, x.p.DATASET_SLICING);
+                new Teachers().tabooBoxAndIntensification(x.p, x.lrec, log);
+                if (check++ > 20 && x.p.getNumberOfPendingTrainingSets(x.lrec) == x.p.NUMBER_OF_TRAINING_SETS)
+                {
+                    log.log("no result");
+                    return;
+                }
+            }
+            else
+            {
+                int add = 5;
+                if (check < x.p.NUMBER_OF_TRAINING_SETS)
+                {
+                    LearnParams p1 = x.p.copy();
+                    p1.NUMBER_OF_TRAINING_SETS = add;
+                    remoteClient.queueIn(p1);
+                    check += add;
+                }
+            }
+
             try {   // don't eat up all cpu!
                 Thread.sleep(20);
             } catch (Exception e) {
-            }
-            if (check++ > 20 && x.p.getNumberOfPendingTrainingSets(x.lrec) == x.p.NUMBER_OF_TRAINING_SETS)
-            {
-                log.log("no result");
-                return;
             }
         }
         x.lrec.aggregateResults();
@@ -333,10 +369,10 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
                     x.p.NNW_AFUNC_PARAMS[0], 
                 };
         }
-        void memorise(Specimen x)
+        synchronized void memorise(Specimen x)
         {
-            int healthy = (x.lrec.averageTestsetCorrect >= x.p.D.TEST.set.size() / meek
-                    && x.lrec.averageTrainsetCorrect >= x.p.D.TRAIN.set.size() / meek)
+            int healthy = (x.lrec.averageTestsetCorrect >= x.p.TESTSET_SIZE / meek
+                    && x.lrec.averageTrainsetCorrect >= (x.p.D.data.length - x.p.TESTSET_SIZE) / meek)
                     ? 1 : 0;
             knowledge.add(new float[][]{ observe(x), new float[]{healthy,1-healthy} });
             if (knowledge.size() > 29 && (knowledge.size()-10) % 20 == 0)
@@ -397,6 +433,61 @@ public class GeneticMLPSearch implements TopologySearchRoutine<MLP> {
                     prey.p.NNW_DIMS[1], prey.p.NNW_DIMS.length-2, 
                     prey.p.STOCHASTIC_SEARCH_ITERS, prey.p.NNW_AFUNC,
                     prey.p.NNW_AFUNC_PARAMS[0], prey.p.MODE, prey.p.LEARNING_RATE_COEF);
+        }
+    }
+
+    
+    
+    
+    
+    
+    
+    private void startRemoteClient(final RelativeMLPFitnessComparator c, final Predator cat, final List<Specimen> evaluating)
+    {
+        if (REMOTING_OVERHEAD > 0 && remoteClient != null)
+        {
+            Observer obs = new Observer()
+            {
+                @Override
+                public void update(Observable o, Object arg)
+                {
+                    SubmittingClient.Tuple tup = (SubmittingClient.Tuple)arg;
+                    Specimen x = new Specimen();  
+                    x.lrec = tup.r;
+                    x.p = tup.p;
+                    cat.memorise(x);
+                    boolean foundParent = false;
+                    for(Specimen par : evaluating)
+                    {
+                        if (par.p.id != 0 && par.p.id == x.p.id)
+                        {
+                            par.lrec.items.addAll(x.lrec.items);
+                            if (par.lrec.bestItem == null || par.lrec.bestItem.fitness < x.lrec.bestItem.fitness)
+                            {
+                                par.lrec.bestItem = x.lrec.bestItem;
+                                par.lrec.best = x.lrec.best;
+                            }
+                            foundParent = true;
+                            break;
+                        }
+                    }
+                    if (!foundParent)
+                    {
+                        c.putFitness(tup.r);
+                    }
+                }
+            };
+            remoteClient.observers.add(obs);
+            Runnable r = new Runnable()
+            {
+                @Override public void run()
+                {
+                    remoteClient.call();
+                }
+            };
+            Thread t = new Thread(r);
+            t.setDaemon(true);
+            t.start();
         }
     }
 

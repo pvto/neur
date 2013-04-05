@@ -17,6 +17,7 @@ public class LearnParams<T extends NeuralNetwork, U extends LearningAlgorithm>
         implements Serializable
 {
 
+    public int id = 0;  // used for joining remote computations
     public int[] NNW_DIMS;
     public int NNW_AFUNC = ActivationFunction.Types.AFUNC_SIGMOID;
     public float[] NNW_AFUNC_PARAMS = { 1f };
@@ -24,6 +25,7 @@ public class LearnParams<T extends NeuralNetwork, U extends LearningAlgorithm>
     public Dataset D;
     public Dataset.Slicing DATASET_SLICING;
     public int TESTSET_SIZE = 1;
+    public int TRAINSET_SIZE()  {   return D.data.length - TESTSET_SIZE; }
     /** how many training sets to create from the dataset; set to 0 (zero) for the number of items n in the dataset,
      and to a negative value for n - x */
     public int NUMBER_OF_TRAINING_SETS = 0;
@@ -42,6 +44,7 @@ public class LearnParams<T extends NeuralNetwork, U extends LearningAlgorithm>
     public LearnParams copy()
     {
         LearnParams<T,U> p = new LearnParams<T,U>();
+        p.id = id;
         p.NNW_DIMS = NNW_DIMS;
         p.NNW_AFUNC = NNW_AFUNC;
         p.NNW_AFUNC_PARAMS = Arrays.copyOf(NNW_AFUNC_PARAMS, NNW_AFUNC_PARAMS.length);
@@ -69,7 +72,7 @@ public class LearnParams<T extends NeuralNetwork, U extends LearningAlgorithm>
         int max = NUMBER_OF_TRAINING_SETS <= 0 
                 ? D.data.length + NUMBER_OF_TRAINING_SETS 
                 : NUMBER_OF_TRAINING_SETS;
-        int trained = lrec.items.size();
+        int trained = (lrec!=null ? lrec.items.size() : 0);
         return max - trained;
     }
 }

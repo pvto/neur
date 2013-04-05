@@ -1,6 +1,7 @@
 
 package neur.learning.learner;
 
+import java.io.Serializable;
 import neur.MLP;
 import neur.Neuron;
 import neur.learning.LearningAlgorithm;
@@ -10,7 +11,7 @@ import neur.learning.LearningAlgorithm;
  *
  * @author Paavo Toivanen
  */
-public final class ElasticBackProp extends BackPropagation {
+public final class ElasticBackProp extends BackPropagation implements Serializable {
 
     public float decreaseFactor = 0.5f;
     public float increaseFactor = 1.2f;
@@ -21,7 +22,7 @@ public final class ElasticBackProp extends BackPropagation {
     Retained[][][] data;
     { clear(); }
     
-    static final class Retained   // for a weight
+    static final class Retained implements Serializable  // for a weight
     {  float gradient = 1f, prevGrad = 0f, prevWgCh = 0f, prevDelta = 0f;  }
     
     @Override

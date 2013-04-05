@@ -1,12 +1,13 @@
 
 package neur.learning.learner;
 
+import java.io.Serializable;
 import neur.MLP;
 import neur.Neuron;
 import static neur.util.Arrf.*;
 
 
-public class MomentumEBP extends BackPropagation {
+public class MomentumEBP extends BackPropagation implements Serializable {
 
     public double 
             learningRate = 0d,

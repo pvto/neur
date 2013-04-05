@@ -21,12 +21,12 @@ public class LearnRecord<T extends NeuralNetwork> implements Serializable {
 
     public LearnRecord(LearnParams params) { this.p = params; }
     
-    public LearnParams p;
+    public transient LearnParams p;
     /** this tracks the best achieved network */
     public volatile T best;
     public volatile T current;
     public Item bestItem = null;
-    public List<Item> items = new ArrayList<Item>();
+    public List<Item<T>> items = new ArrayList<>();
     public long timestamp = 0,
             duration = 0;
 
@@ -56,6 +56,7 @@ public class LearnRecord<T extends NeuralNetwork> implements Serializable {
     private double sqr(double a) { return a * a; }
     
 
+    public boolean isAggregated()   {   return averageOutputError != null;  }
     public void aggregateResults()
     {
         duration = System.currentTimeMillis() - timestamp;
@@ -125,7 +126,7 @@ public class LearnRecord<T extends NeuralNetwork> implements Serializable {
     }
 
     
-    public static class Item<T extends NeuralNetwork>
+    public static class Item<T extends NeuralNetwork> implements Serializable
     {
         public LearnRecord<T> L;
         private Item(LearnRecord<T> L)

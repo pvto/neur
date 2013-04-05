@@ -1,12 +1,13 @@
 package neur.learning.learner;
 
+import java.io.Serializable;
 import neur.MLP;
 import neur.Neuron;
 import neur.learning.LearningAlgorithm;
 import neur.learning.SupervisedLearner;
 
 
-public class BackPropagation implements SupervisedLearner<MLP> {
+public class BackPropagation implements SupervisedLearner<MLP>, Serializable {
 
     @Override
     public LearningAlgorithm<MLP> copy()

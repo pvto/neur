@@ -13,7 +13,7 @@ import neur.data.slice.SystematicSlicing;
  */
 public class Dataset implements Serializable {
 
-    public enum Slicing 
+    public enum Slicing implements Serializable
     {
         Systematic,
         RandomDueClassification,

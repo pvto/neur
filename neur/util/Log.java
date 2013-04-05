@@ -34,7 +34,18 @@ public interface Log {
             t.printStackTrace();
         }
     };
-
+    public static Log tcout = new Log()
+    {
+        SimpleDateFormat DF = new SimpleDateFormat("yyMMdd' 'HHmmSS'  '");
+        public void log(String f, Object ... params) {
+            System.out.println(String.format(DF.format(new Date()) + f, params));
+        }
+        public void err(String str, Throwable t) {
+            Date d = new Date();
+            System.out.println(DF.format(new Date()) + str);
+            t.printStackTrace();
+        }
+    };
     
     public static class create
     {

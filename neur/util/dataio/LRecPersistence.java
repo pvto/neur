@@ -33,8 +33,8 @@ public class LRecPersistence {
                 "teach_mode",   r.p.MODE)
             .a( "lrate",        r.p.LEARNING_RATE_COEF)
             .a( "dyn_lrate",    (r.p.DYNAMIC_LEARNING_RATE?1:0))
-            .a( "test_size",    r.p.D.TEST.set.size(),
-                "train_size",   r.p.D.TRAIN.set.size(),
+            .a( "test_size",    r.p.TESTSET_SIZE,
+                "train_size",   r.p.TRAINSET_SIZE(),
                 "test_ok",      item.testsetCorrect,
                 "train_ok",     item.trainsetCorrect)
             .a( "sqr_error",    Arrf.avg(Arrf.sqr(item.error)))
@@ -71,14 +71,14 @@ public class LRecPersistence {
             "teach_mode",   r.p.MODE)
         .a( "lrate",        r.p.LEARNING_RATE_COEF)
         .a( "dyn_lrate",    (r.p.DYNAMIC_LEARNING_RATE?1:0))
-        .a( "test_size",    r.p.D.TEST.set.size(),
-            "train_size",   r.p.D.TRAIN.set.size(),
+        .a( "test_size",    r.p.TESTSET_SIZE,
+            "train_size",   r.p.TRAINSET_SIZE(),
             "test_ok",      r.averageTestsetCorrect,
             "test_ok_var",  r.varianceTestsetCorrect,
             "train_ok",     r.averageTrainsetCorrect,
             "train_ok_var",  r.varianceTrainsetCorrect)
-        .a( "test_err",     100d * (1d - r.averageTestsetCorrect / (double)r.p.D.TEST.set.size()), "%3.2f")
-        .a( "train_err",    100d * (1d - r.averageTrainsetCorrect / (double)r.p.D.TRAIN.set.size()), "%3.2f")
+        .a( "test_err",     100d * (1d - r.averageTestsetCorrect / (double)r.p.TESTSET_SIZE), "%3.2f")
+        .a( "train_err",    100d * (1d - r.averageTrainsetCorrect / (double)r.p.TRAINSET_SIZE()), "%3.2f")
         .a( "stoch_best_iter", r.averageBestStochasticIteration,
             "stoch_best_iter_var", r.varianceBestStochasticIteration,
             "stoch_tot_iter", r.p.STOCHASTIC_SEARCH_ITERS,
