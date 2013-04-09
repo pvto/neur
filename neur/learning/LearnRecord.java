@@ -193,13 +193,13 @@ public class LearnRecord<T extends NeuralNetwork> implements Serializable {
                 error[i] = avg(subtract(col(L.p.D.data, 1,i), col(out, i)));
             }
             
-            Item best = L.bestItem;
-            fitness = (testsetCorrect + trainsetCorrect) * 
-                    (1 - Math.max(0.1,
-                    Math.abs((float)testsetCorrect / L.p.D.TEST.set.size() - (float)trainsetCorrect / L.p.D.TRAIN.set.size()))
-                    )
-                    ;
+            fitness = L.p.FIT_FUNC.fitness(this);
+                    //(testsetCorrect + trainsetCorrect) * 
+                    //(1 - Math.max(0.1,
+                    //Math.abs((float)testsetCorrect / L.p.D.TEST.set.size() - (float)trainsetCorrect / L.p.D.TRAIN.set.size()))
+                    //);
                     //(float)testsetCorrect + (1f / (1f + (L.p.D.TRAIN.set.size() - (float)trainsetCorrect)));
+            Item best = L.bestItem;
             if (best == null || fitness > best.fitness)
             {
                 L.bestItem = this;

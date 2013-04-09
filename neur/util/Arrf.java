@@ -274,6 +274,13 @@ public final class Arrf {
     }
     // --- conversion methods between different types of arrays --- //
     
+    public static int[]                     ints(float[] data)
+    {
+        int[] r = new int[data.length];
+        for (int i = 0; i < r.length; i++)
+            r[i] = (int)data[i];
+        return r;
+    }
     public static int[]                     ints(String[] data)
     {
         int[] r = new int[data.length];
@@ -288,6 +295,24 @@ public final class Arrf {
             r[i] = Float.parseFloat(data[i]);
         return r;
     }
+    public static double[][][]              doubles(float[][][] data)
+    {
+        double[][][] r = new double[data.length][][];
+        for (int k = 0; k < r.length; k++)
+        {
+            r[k] = new double[data[k].length][];
+            for (int j = 0; j < r[k].length; j++)
+            {
+                r[k][j] = new double[data[k][j].length];
+                for (int i = 0; i < r[k][j].length; i++)
+                {
+                    r[k][j][i] = data[k][j][i];
+                }
+            }
+        }
+        return r;
+    }
+
     public static float[][]                 arrayf(List<float[]> data)
     {
         float[][] r = new float[data.size()][];
@@ -298,6 +323,16 @@ public final class Arrf {
         }
         return r;
     }
+    public static float[][][]               arrayff(List<float[][]> list)
+    {
+        float[][][] r = new float[list.size()][][];
+        for (int i = 0; i < r.length; i++)
+        {
+            r[i] = list.get(i);
+        }
+        return r;
+    }
+
     public static float[][][]               arrayff_shallow(List<float[][]> data)
     {
         float[][][] r = new float[data.size()][][];
@@ -431,6 +466,20 @@ public final class Arrf {
         }
         return r;
     }
+    public static float[] maxarr(float[] ... arrs)
+    {
+        float[] max = new float[arrs[0].length];
+        for (int i = 0; i < max.length; i++)
+        {
+            max[i] = arrs[0][i];
+            for (int j = 1; j < arrs.length; j++)
+            {
+                max[i] = Math.max(max[i], arrs[j][i]);
+            }
+        }
+        return max;
+    }
+
     
     // --- data conversion and normalisation --- //
     
@@ -457,7 +506,7 @@ public final class Arrf {
         }
         return r;
     }
-    public static float[]                   normaliseMeansd(float[] data)
+    public static float[]                   standardise(float[] data)
     {
         float[] r = new float[data.length];
         float mean = evdist_mean(data);
@@ -466,13 +515,13 @@ public final class Arrf {
             r[i] = (data[i] - mean) / (sd);
         return r;
     }
-    public static float[][][]               normaliseMeansd(float[][][] data)
+    public static float[][][]               standardise(float[][][] data)
     {
         float[][][] r = copy(data);
         for(int j = 0; j < data[0].length; j++)
         for (int i = 0; i < data[0][j].length; i++)
         {
-            float[] norm = normaliseMeansd(col(data, j, i));
+            float[] norm = standardise(col(data, j, i));
             for (int k = 0; k < norm.length; k++)
             {
                 r[k][j][i] = norm[k];
@@ -615,11 +664,11 @@ public final class Arrf {
     }
     public static float[]                   subtract(float[] from, float val)
     {
-        float[] r = new float[from.length];
-        for (int i = 0; i < r.length; i++) {
-            r[i] = from[i] - val;
-        }
-        return r;
+        return add(from, -val);
+    }
+    public static float[]                   subtract(float from, float[] arr)
+    {
+        return add(mult(arr, -1), from);
     }
     public static float[]                   add(float[] from, float val)
     {
@@ -717,5 +766,5 @@ public final class Arrf {
         if (A.length != B.length)
             throw new RuntimeException("samples of A and B are not of same length");
     }
-    
+
 }
